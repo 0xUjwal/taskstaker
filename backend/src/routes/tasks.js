@@ -45,7 +45,7 @@ router.get('/mine', requireAuthentication, async (req, res) => {
     const assignments = {};
     for (let id = 0; id < count; id++) {
       const row = byId.get(id);
-      if (row && row.owner_user_id !== user.id && row.validator_user_id !== user.id) continue;
+      if (row?.owner_user_id && row.owner_user_id !== user.id && row.validator_user_id !== user.id) continue;
       const t = await c.getTask(id);
       const roles = taskRoles(t, row, user, embeddedAddress, process.env.RELAYER_ADDRESS);
       if (!roles.isOwner && !roles.isValidator) continue;

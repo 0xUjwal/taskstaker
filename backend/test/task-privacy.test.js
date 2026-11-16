@@ -53,20 +53,20 @@ test('authenticated feed applies roles before returning data, and denies anonymo
   const db = require('../src/services/supabase');
   // Inject only data sources. The actual Express route and privacy predicate run.
   service.accountContext = async id => ({user: id==='alice'?alice:id==='bob'?bob:fresh, embeddedAddress:'0xEMBEDDED'});
-  const chain = [task,{user:'0xSTRANGER',validator:'0xRELAYER'}].map(t=>({...t,name:'test',stake:require('ethers').ethers.BigNumber.from(1), deadline:{toNumber:()=>2000000000},completed:false,validated:false,claimed:false,proofUrl:'',token:'0x0'}));
-  service.readContract = () => ({getTaskCount:async()=>({toNumber:()=>2}),getTask:async id=>chain[id]});
-  db.from = () => ({select:()=>Promise.resolve({data:[{...assignment,task_id:0,owner_username:'alice',validator_username:'bob'}],error:null})});
+  const chain = [task,{user:'0xSTRANGER',validator:'0xRELAYER'},task].map(t=>({...t,name:'test',stake:require('ethers').ethers.BigNumber.from(1), deadline:{toNumber:()=>2000000000},completed:false,validated:false,claimed:false,proofUrl:'',token:'0x0'}));
+  service.readContract = () => ({getTaskCount:async()=>({toNumber:()=>3}),getTask:async id=>chain[id]});
+  db.from = () => ({select:()=>Promise.resolve({data:[{...assignment,task_id:0,owner_username:'alice',validator_username:'bob'},{task_id:2,owner_user_id:null,validator_user_id:'stranger'}],error:null})});
   const app=express();
   app.use((req,res,next)=>{req.auth={userId:req.headers['x-test-account']};next();});
   app.use('/api/tasks',require('../src/routes/tasks'));
   const server=app.listen(0,'127.0.0.1'); await new Promise(r=>server.once('listening',r));
   const base=`http://127.0.0.1:${server.address().port}/api/tasks`;
   try {
-    for(const [account,expected] of [['alice',[0]],['bob',[0]],['new',[]]]) {
+    for(const [account,expected] of [['alice',[2,0]],['bob',[0]],['new',[]]]) {
       const r=await fetch(base+'/mine',{headers:{'x-test-account':account}}); assert.equal(r.status,200);
       assert.match(r.headers.get('cache-control'),/no-store/);
       const data=await r.json();assert.deepEqual(data.tasks.map(t=>t.id),expected);
-      assert.deepEqual(Object.keys(data.assignments),expected.map(String));
+      assert.deepEqual(Object.keys(data.assignments).sort(),expected.map(String).sort());
     }
     assert.equal((await fetch(base+'/mine')).status,401);
     assert.equal((await fetch(base+'/assignments?taskIds=0')).status,401);
