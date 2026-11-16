@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/clerk-react";
-import { supabase } from "../utils/supabase";
 import { getNotifications, getUnreadCount, markRead, markAllRead } from "../utils/api";
 
 export function useNotifications(userId) {
@@ -20,36 +19,14 @@ export function useNotifications(userId) {
     }
   }, [getToken]);
 
-  // Initial fetch
+  // Private tables are no longer exposed through anonymous Realtime. Fetch
+  // with the current Clerk session and discard late results after a switch.
   useEffect(() => {
+    if (!userId) return;
     fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Supabase Realtime subscription
-  useEffect(() => {
-    if (!supabase || !userId) return;
-
-    const channel = supabase
-      .channel("notifications-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          setNotifications((prev) => [payload.new, ...prev]);
-          setUnreadCount((prev) => prev + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
+  }, [userId, fetchNotifications]);
 
   const handleMarkRead = useCallback(async (id) => {
     try {

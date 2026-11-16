@@ -1,10 +1,14 @@
-const { clerkMiddleware, requireAuth, getAuth } = require("@clerk/express");
+const { clerkMiddleware } = require("@clerk/express");
 
 // Initialize Clerk middleware
 const clerk = clerkMiddleware();
 
 // Require authenticated user
-const requireAuthentication = requireAuth();
+function requireAuthentication(req, res, next) {
+  res.set('Cache-Control', 'private, no-store');
+  if (!getUserId(req)) return res.status(401).json({ error: 'Authentication required' });
+  next();
+}
 
 // Helper to get userId from request (handles both old and new Clerk API)
 function getUserId(req) {

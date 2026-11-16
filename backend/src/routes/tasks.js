@@ -27,7 +27,42 @@ const {
   getEmbeddedWalletWithProvider,
 } = require("../services/embeddedWallet");
 
+const { taskRoles, readContract, accountContext, requireTaskAccess } = require('../services/taskAccess');
 const router = express.Router();
+
+// The feed is derived from the authenticated account, never a client-supplied
+// user ID or the global list of public blockchain tasks.
+router.get('/mine', requireAuthentication, async (req, res) => {
+  try {
+    const { user, embeddedAddress } = await accountContext(getUserId(req));
+    const { data: rows, error } = await supabase.from('task_validators').select('*');
+    if (error) throw error;
+    const byId = new Map((rows || []).map(row => [row.task_id, row]));
+    const c = readContract();
+    const count = (await c.getTaskCount()).toNumber();
+    const tasks = [];
+    const assignments = {};
+    for (let id = 0; id < count; id++) {
+      const row = byId.get(id);
+      if (row && row.owner_user_id !== user.id && row.validator_user_id !== user.id) continue;
+      const t = await c.getTask(id);
+      const roles = taskRoles(t, row, user, embeddedAddress, process.env.RELAYER_ADDRESS);
+      if (!roles.isOwner && !roles.isValidator) continue;
+      tasks.push({ id, user: t.user, validator: t.validator, name: t.name,
+        stake: ethers.utils.formatEther(t.stake), deadline: t.deadline.toNumber() * 1000,
+        completed: t.completed, validated: t.validated, claimed: t.claimed,
+        proofUrl: t.proofUrl, token: t.token, ...roles });
+      if (row) assignments[id] = { validatorUsername: row.validator_username,
+        ownerUsername: row.owner_username, validatorUserId: row.validator_user_id,
+        ownerUserId: row.owner_user_id };
+    }
+    res.set('Cache-Control', 'private, no-store');
+    res.json({ tasks: tasks.reverse(), assignments });
+  } catch (err) {
+    console.error('Private task feed error:', err.message);
+    res.status(err.status || 503).json({ error: err.status ? err.message : 'Unable to load your tasks. Please retry.' });
+  }
+});
 
 async function getClerkEmail(clerkId) {
   try {
@@ -54,6 +89,9 @@ router.post("/assign-validator", requireAuthentication, async (req, res) => {
         .status(400)
         .json({ error: "taskId and validatorUsername are required" });
     }
+
+    // Check on-chain ownership before allowing an assignment to be written.
+    await requireTaskAccess(clerkId, taskId, true);
 
     // Get owner
     const { data: owner } = await supabase
@@ -128,7 +166,7 @@ router.post("/assign-validator", requireAuthentication, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("Assign validator error:", err);
-    res.status(500).json({ error: "Failed to assign validator" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to assign validator" });
   }
 });
 
@@ -151,6 +189,8 @@ router.post("/submit-proof", requireAuthentication, async (req, res) => {
         .status(400)
         .json({ error: "taskId and proofUrl are required" });
     }
+
+    await requireTaskAccess(clerkId, taskId, true);
 
     // Parallel: owner lookup + assignment lookup
     let [{ data: owner }, { data: assignment }] = await Promise.all([
@@ -336,7 +376,7 @@ router.post("/submit-proof", requireAuthentication, async (req, res) => {
     }
   } catch (err) {
     console.error("Submit proof error:", err);
-    res.status(500).json({ error: "Failed to submit proof" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to submit proof" });
   }
 });
 
@@ -529,8 +569,10 @@ router.post("/validate", requireAuthentication, async (req, res) => {
  * GET /api/tasks/assignments?taskIds=0,1,2,3
  * Returns validator and owner usernames for given task IDs.
  */
-router.get("/assignments", async (req, res) => {
+router.get("/assignments", requireAuthentication, async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
   try {
+    const { user } = await accountContext(getUserId(req));
     const { taskIds } = req.query;
     if (!taskIds) return res.json({ assignments: {} });
 
@@ -545,7 +587,8 @@ router.get("/assignments", async (req, res) => {
       .select(
         "task_id, validator_username, owner_username, validator_user_id, owner_user_id",
       )
-      .in("task_id", ids);
+      .in("task_id", ids)
+      .or(`owner_user_id.eq.${user.id},validator_user_id.eq.${user.id}`);
 
     if (error) throw error;
 

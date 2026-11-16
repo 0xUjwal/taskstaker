@@ -38,8 +38,7 @@ CREATE TABLE IF NOT EXISTS task_validators (
 CREATE INDEX IF NOT EXISTS idx_task_validators_validator ON task_validators(validator_user_id);
 CREATE INDEX IF NOT EXISTS idx_task_validators_owner ON task_validators(owner_user_id);
 
-CREATE POLICY "Service role full access on task_validators" ON task_validators
-  FOR ALL USING (true) WITH CHECK (true);
+-- No client access policy: the backend service_role bypasses RLS.
 ALTER TABLE task_validators ENABLE ROW LEVEL SECURITY;
 
 -- AI analyses table
@@ -70,11 +69,11 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_analyses ENABLE ROW LEVEL SECURITY;
 
 -- Allow service role full access (backend uses service key)
-CREATE POLICY "Service role full access on users" ON users
-  FOR ALL USING (true) WITH CHECK (true);
+-- No client access policy: the backend service_role bypasses RLS.
 
-CREATE POLICY "Service role full access on notifications" ON notifications
-  FOR ALL USING (true) WITH CHECK (true);
+-- No client access policy: the backend service_role bypasses RLS.
 
-CREATE POLICY "Service role full access on ai_analyses" ON ai_analyses
-  FOR ALL USING (true) WITH CHECK (true);
+-- No client access policy: the backend service_role bypasses RLS.
+
+REVOKE ALL ON public.users, public.notifications, public.task_validators, public.ai_analyses FROM anon, authenticated;
+GRANT ALL ON public.users, public.notifications, public.task_validators, public.ai_analyses TO service_role;

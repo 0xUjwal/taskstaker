@@ -1,10 +1,11 @@
 const express = require("express");
 const multer = require("multer");
 const { ethers } = require("ethers");
-const { requireAuthentication } = require("../middleware/auth");
+const { requireAuthentication, getUserId } = require("../middleware/auth");
 const { analyzeProof, chatAnalysis } = require("../services/ai");
 const supabase = require("../services/supabase");
 
+const { requireTaskAccess } = require('../services/taskAccess');
 const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -66,6 +67,10 @@ router.post(
         return res.status(400).json({ error: "Task description is required" });
       }
 
+      if (taskId !== undefined && taskId !== null && taskId !== '') {
+        await requireTaskAccess(getUserId(req), taskId);
+      }
+
       let fileBase64 = null;
       let fileMimeType = null;
 
@@ -87,7 +92,7 @@ router.post(
       });
 
       // Store analysis in database — non-fatal if table missing or insert fails
-      if (taskId) {
+      if (taskId !== undefined && taskId !== null && taskId !== '') {
         supabase
           .from("ai_analyses")
           .insert({ task_id: parseInt(taskId), analysis })
@@ -100,6 +105,7 @@ router.post(
       res.json({ analysis });
     } catch (err) {
       console.error("AI analyze error:", err);
+      if (err.status) return res.status(err.status).json({ error: err.message });
       // Never return 500 — return a usable default so the chatbot stays functional
       res.json({
         analysis: {
@@ -155,9 +161,11 @@ router.post(
 );
 
 // Get AI analysis for a task
-router.get("/analysis/:taskId", async (req, res) => {
+router.get("/analysis/:taskId", requireAuthentication, async (req, res) => {
   try {
     const { taskId } = req.params;
+    await requireTaskAccess(getUserId(req), taskId);
+    res.set('Cache-Control', 'private, no-store');
 
     const { data, error } = await supabase
       .from("ai_analyses")
@@ -174,7 +182,7 @@ router.get("/analysis/:taskId", async (req, res) => {
     res.json({ analysis: data.analysis });
   } catch (err) {
     console.error("Get analysis error:", err);
-    res.status(500).json({ error: "Failed to get analysis" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to get analysis" });
   }
 });
 

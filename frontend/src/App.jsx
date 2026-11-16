@@ -57,6 +57,13 @@ function App() {
 }
 
 function AuthenticatedApp({ page }) {
+  const { userId } = useAuth();
+  // Remount all account-owned state, including tasks, wallet and async requests,
+  // when Clerk switches accounts without a full browser reload.
+  return userId ? <AccountApp key={userId} page={page} /> : null;
+}
+
+function AccountApp({ page }) {
   const { getToken } = useAuth();
   const { user: clerkUser } = useUser();
   const [userProfile, setUserProfile] = useState(null);

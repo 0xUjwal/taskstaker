@@ -1,9 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   contract,
-  formatEther,
-  userAddress,
-  getReadOnlyContract,
 } from "../utils/web3";
 import { uploadFile } from "../utils/storage";
 import { useAuth } from "@clerk/clerk-react";
@@ -12,8 +9,7 @@ import {
   submitProofOffChain,
   validateTaskOffChain,
   getEthPrice,
-  getTaskAssignments,
-  getConfig,
+  getMyTasks,
   getEmbeddedWalletInfo,
   claimFundsEmbedded,
 } from "../utils/api";
@@ -52,24 +48,19 @@ export default function TaskList({
   const { getToken } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const inFlightRef = useRef(false);
   const [filter, setFilter] = useState("all");
   const [actionStates, setActionStates] = useState({});
   const [chatTask, setChatTask] = useState(null);
   const [ethPrice, setEthPrice] = useState(null);
   const [assignments, setAssignments] = useState({});
   const [embeddedAddress, setEmbeddedAddress] = useState("");
-  const relayerAddressRef = useRef("");
   const loadGenRef = useRef(0); // increments each loadTasks call; guards stale assignment updates
 
   useEffect(() => {
     getEthPrice()
       .then((d) => setEthPrice(d.usd))
-      .catch(() => {});
-    getConfig()
-      .then((c) => {
-        if (c?.relayerAddress)
-          relayerAddressRef.current = c.relayerAddress.toLowerCase();
-      })
       .catch(() => {});
     // Load embedded wallet address for claim routing
     getToken()
@@ -82,56 +73,22 @@ export default function TaskList({
 
   // Extract primitives so loadTasks doesn't re-fire when effectiveProfile wraps a new object
   const myUserId = userProfile?.id ?? null;
-  const myWalletAddr = userProfile?.wallet_address ?? "";
 
   const loadTasks = useCallback(async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     const gen = ++loadGenRef.current;
     try {
       setLoading(true);
-      const c = walletReady && contract ? contract : getReadOnlyContract();
-      if (!c) return;
-
-      const count = await c.getTaskCount();
-      const taskCount = count.toNumber();
-      const tasksData = [];
-      // Include embedded wallet address so tasks created without MetaMask
-      // are correctly identified as owned without needing the task_validators lookup
-      const myAddress = (userAddress || myWalletAddr || embeddedAddress || "").toLowerCase();
-
-      for (let i = 0; i < taskCount; i++) {
-        try {
-          const t = await c.getTask(i);
-          const validatorAddr = t.validator.toLowerCase();
-          // isLegacyTask = was created before relayer pattern (validator is not the relayer)
-          const isLegacyTask = relayerAddressRef.current
-            ? validatorAddr !== relayerAddressRef.current
-            : false;
-
-          tasksData.push({
-            id: i,
-            user: t.user,
-            validator: t.validator,
-            name: t.name,
-            stake: formatEther(t.stake),
-            deadline: t.deadline.toNumber() * 1000,
-            completed: t.completed,
-            validated: t.validated,
-            claimed: t.claimed,
-            proofUrl: t.proofUrl,
-            token: t.token,
-            isLegacyTask,
-            isOwner: myAddress ? t.user.toLowerCase() === myAddress : false,
-            // Legacy: validator is determined by on-chain wallet address
-            isLegacyValidator: myAddress ? validatorAddr === myAddress : false,
-          });
-        } catch (err) {
-          console.error(`Error loading task ${i}:`, err);
-        }
-      }
+      const token = await getToken();
+      const { tasks: tasksData, assignments: ownAssignments } = await getMyTasks(token);
+      if (gen !== loadGenRef.current) return;
+      setLoadError("");
+      setAssignments(ownAssignments || {});
 
       // Cache non-zero stakes to localStorage — contract zeroes task.stake on claim/forfeit.
       // This lets us restore the original amount for settled tasks without any RPC event queries.
-      const STAKE_CACHE_KEY = "ts_task_stakes";
+      const STAKE_CACHE_KEY = `ts_task_stakes:${import.meta.env.VITE_CONTRACT_ADDRESS}:${myUserId}`;
       let stakeCache = {};
       try {
         stakeCache = JSON.parse(localStorage.getItem(STAKE_CACHE_KEY) || "{}");
@@ -157,44 +114,25 @@ export default function TaskList({
         } catch {}
       }
 
-      const reversed = tasksData.reverse();
+      const reversed = tasksData;
       setTasks(reversed);
       const immediateCompleted = reversed.filter(
         (t) => t.isOwner && t.claimed && t.validated,
       ).length;
       onDerivedCompletedTasks?.(immediateCompleted);
 
-      if (reversed.length > 0) {
-        const ids = reversed.map((t) => t.id);
-        getTaskAssignments(ids)
-          .then(({ assignments: a }) => {
-            if (gen !== loadGenRef.current) return; // stale — a newer load is in flight
-            setAssignments(a || {});
-            if (myUserId) {
-              setTasks((prev) => {
-                const next = prev.map((t) => ({
-                  ...t,
-                  isValidator: a?.[t.id]?.validatorUserId === myUserId,
-                  isOwner: a?.[t.id]?.ownerUserId === myUserId || t.isOwner,
-                }));
-
-                const assignmentAwareCompleted = next.filter(
-                  (t) => t.isOwner && t.claimed && t.validated,
-                ).length;
-                onDerivedCompletedTasks?.(assignmentAwareCompleted);
-                return next;
-              });
-            }
-          })
-          .catch(() => {});
-      }
     } catch (err) {
       console.error("Error loading tasks:", err);
+      if (gen === loadGenRef.current) {
+        setTasks([]); setAssignments({});
+        setLoadError("Couldn't load your tasks. Please refresh to try again.");
+      }
     } finally {
-      setLoading(false);
+      inFlightRef.current = false;
+      if (gen === loadGenRef.current) setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletReady, myUserId, myWalletAddr, embeddedAddress, onDerivedCompletedTasks]);
+  }, [getToken, myUserId, onDerivedCompletedTasks]);
 
   useEffect(() => {
     loadTasks();
@@ -374,25 +312,9 @@ export default function TaskList({
   };
 
   const filteredTasks = tasks.filter((t) => {
-    // Check ownership via assignments OR direct embedded wallet match
-    const tIsOwner =
-      t.isOwner ||
-      (embeddedAddress ? t.user.toLowerCase() === embeddedAddress : false);
-    // Mirror render-time isAssignedValidator so filter stays in sync with button visibility
-    const tAssignment = assignments[t.id];
-    const tValidatorUsername =
-      tAssignment?.validatorUsername ||
-      (t.isLegacyTask &&
-      t.validator !== "0x0000000000000000000000000000000000000000"
-        ? `${t.validator.slice(0, 6)}...${t.validator.slice(-4)}`
-        : null);
-    const tIsValidator =
-      t.isValidator ||
-      t.isLegacyValidator ||
-      !!(myUserId && tAssignment?.validatorUserId === myUserId) ||
-      !!(userProfile?.username &&
-        tValidatorUsername &&
-        tValidatorUsername.toLowerCase() === userProfile.username.toLowerCase());
+    const tIsOwner = t.isOwner;
+    const tIsValidator = t.isValidator;
+    if (!tIsOwner && !tIsValidator) return false;
 
     if (filter === "mine") return tIsOwner;
     if (filter === "validate") return tIsValidator;
@@ -413,7 +335,7 @@ export default function TaskList({
       <div className="flex items-center justify-between glass-card p-3">
         <div className="flex gap-1.5 overflow-x-auto">
           {[
-            { key: "all", label: "All" },
+            { key: "all", label: "My activity" },
             { key: "mine", label: "My Tasks" },
             { key: "validate", label: "To Validate" },
             { key: "actionable", label: "Actionable" },
@@ -445,7 +367,8 @@ export default function TaskList({
         </button>
       </div>
 
-      {loading && tasks.length === 0 ? (
+      {loadError && <p role="alert" className="glass-card p-4 text-primary text-sm">{loadError}</p>}
+      {loadError ? null : loading && tasks.length === 0 ? (
         <div className="text-center py-16 text-on-surface-variant">
           <div className="mx-auto w-10 h-10 rounded-full crimson-gradient animate-pulse shadow-[0_0_20px_rgba(255,59,48,0.4)] mb-4" />
           <span className="text-sm font-label uppercase tracking-widest">
@@ -466,14 +389,7 @@ export default function TaskList({
             const isExpired = now > task.deadline;
             const state = actionStates[task.id] || {};
             const assignment = assignments[task.id];
-            // Resolve ownership: use task.isOwner (from on-chain wallet match or assignments),
-            // but also do a direct embedded-wallet check in render so the button shows
-            // immediately even before assignments have loaded or if assignment is missing.
-            const isOwner =
-              task.isOwner ||
-              (embeddedAddress
-                ? task.user.toLowerCase() === embeddedAddress
-                : false);
+            const isOwner = task.isOwner;
             const validatorUsername =
               assignment?.validatorUsername ||
               (task.isLegacyTask &&
@@ -482,18 +398,7 @@ export default function TaskList({
                 : null);
             const ownerUsername = assignment?.ownerUsername;
 
-            // Same pattern as isOwner: check assignments state directly so the
-            // Validate button appears as soon as assignment data loads, without
-            // needing to wait for the setTasks functional update to settle.
-            // Also fall back to username comparison for robustness.
-            const isAssignedValidator =
-              task.isValidator ||
-              task.isLegacyValidator ||
-              !!(myUserId && assignment?.validatorUserId === myUserId) ||
-              !!(userProfile?.username &&
-                validatorUsername &&
-                validatorUsername.toLowerCase() ===
-                  userProfile.username.toLowerCase());
+            const isAssignedValidator = task.isValidator;
 
             let statusColor = "text-primary bg-primary/10 border-primary/20";
             let statusLabel = formatDistanceToNow(task.deadline, {

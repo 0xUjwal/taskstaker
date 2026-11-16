@@ -76,7 +76,7 @@ export async function chatWithAI(token, { messages, taskDescription, file }) {
   });
 }
 
-export const getAnalysis = (taskId) => fetchApi(`/api/ai/analysis/${taskId}`);
+export const getAnalysis = (token, taskId) => fetchApi(`/api/ai/analysis/${taskId}`, { headers: authHeaders(token) });
 
 // Notifications
 export const getNotifications = (token) =>
@@ -122,8 +122,11 @@ export const assignValidator = (token, payload) =>
     body: JSON.stringify(payload),
   });
 
-export const getTaskAssignments = (taskIds) =>
-  fetchApi(`/api/tasks/assignments?taskIds=${taskIds.join(",")}`);
+export const getMyTasks = (token) =>
+  fetchApi('/api/tasks/mine', { headers: authHeaders(token), cache: 'no-store' });
+
+export const getTaskAssignments = (token, taskIds) =>
+  fetchApi(`/api/tasks/assignments?taskIds=${taskIds.join(",")}`, { headers: authHeaders(token) });
 
 export const getOriginalStakes = (taskIds) =>
   fetchApi(`/api/tasks/original-stakes?taskIds=${taskIds.join(",")}`);
