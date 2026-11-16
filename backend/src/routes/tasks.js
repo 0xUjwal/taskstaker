@@ -27,6 +27,7 @@ const {
   getEmbeddedWalletWithProvider,
 } = require("../services/embeddedWallet");
 
+const { verifiedAddress } = require('../services/walletLinkProof');
 const { taskRoles, readContract, accountContext, requireTaskAccess } = require('../services/taskAccess');
 const router = express.Router();
 
@@ -411,6 +412,7 @@ router.post("/validate", requireAuthentication, async (req, res) => {
         .single(),
     ]);
     if (!callerUser) return res.status(404).json({ error: "User not found" });
+    callerUser.wallet_address = verifiedAddress(clerkId, callerUser.wallet_address);
 
     // If task_validators row is missing, check whether the caller received a
     // validation_needed notification for this task (sent at creation time in wallet.js).

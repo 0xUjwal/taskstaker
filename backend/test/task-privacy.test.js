@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 process.env.SUPABASE_URL ||= 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_KEY ||= 'test-key';
-const { taskRoles } = require('../src/services/taskAccess');
+const { taskRoles, accountContext } = require('../src/services/taskAccess');
 const alice = { id: 'account-a', wallet_address: '0xALICE' };
 const bob = { id: 'account-b', wallet_address: '0xBOB' };
 const fresh = { id: 'new-account', wallet_address: null };
@@ -21,7 +21,7 @@ test('a shared wallet cannot override another account assignment', () => {
   const r = roles(task, assignment, {...fresh, wallet_address: '0xALICE'}, '0xALICE');
   assert.equal(r.isOwner || r.isValidator, false);
 });
-test('legacy task without assignment is kept for its linked wallet owner', () => assert.equal(roles(task, null, alice).isOwner, true));
+test('legacy task without assignment is kept for its verified wallet owner', () => assert.equal(roles(task, null, alice).isOwner, true));
 test('legacy unrelated task without assignment stays hidden', () => {
   const r=roles(task, null, fresh); assert.equal(r.isOwner || r.isValidator, false);
 });
@@ -34,6 +34,17 @@ test('legacy wallet validator can see assigned on-chain task', () => assert.equa
 test('assignment overrides an old on-chain validator wallet', () => assert.equal(roles({...task,validator:'0xBOB'}, {...assignment,validator_user_id:'someone-else'}, bob).isValidator, false));
 test('wallet address matching is case insensitive', () => assert.equal(roles({...task,user:'0xalice'}, null, alice).isOwner,true));
 test('an empty wallet is not an ownership wildcard', () => assert.equal(roles(task, null, fresh, '').isOwner,false));
+
+test('existing saved address cannot establish ownership without proof', async () => {
+  const db = require('../src/services/supabase');
+  const original = db.from;
+  db.from = () => ({select:()=>({eq:()=>({single:async()=>({data:{id:'legacy',wallet_address:'0xALICE'},error:null})})})});
+  try {
+    const {user,embeddedAddress}=await accountContext('legacy-unverified');
+    assert.equal(user.wallet_address,null);
+    assert.equal(taskRoles(task,null,user,embeddedAddress,'0xRELAYER').isOwner,false);
+  } finally { db.from=original; }
+});
 
 test('authenticated feed applies roles before returning data, and denies anonymous requests', async () => {
   const express = require('express');
