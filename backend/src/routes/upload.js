@@ -19,7 +19,7 @@ router.post("/", requireAuthentication, upload.single("file"), async (req, res) 
     const fileName = `proofs/${Date.now()}_${hash}.${ext}`;
 
     const { data, error } = await supabase.storage
-      .from("taskstaker")
+      .from("TaskStaker")
       .upload(fileName, req.file.buffer, {
         contentType: req.file.mimetype,
         upsert: false,
@@ -28,7 +28,7 @@ router.post("/", requireAuthentication, upload.single("file"), async (req, res) 
     if (error) throw error;
 
     const { data: urlData } = supabase.storage
-      .from("taskstaker")
+      .from("TaskStaker")
       .getPublicUrl(fileName);
 
     res.json({
