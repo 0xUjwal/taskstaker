@@ -2,6 +2,7 @@ const express = require("express");
 const { requireAuthentication, getUserId } = require("../middleware/auth");
 const supabase = require("../services/supabase");
 
+const { createChallenge, verifyChallenge } = require('../services/walletLinkProof');
 const router = express.Router();
 
 // Register username after Clerk login
@@ -59,15 +60,32 @@ router.post("/register", requireAuthentication, async (req, res) => {
   }
 });
 
+// A connected wallet address alone is not proof that the account controls it.
+router.get('/wallet-challenge', requireAuthentication, (req, res) => {
+  try {
+    res.json(createChallenge(getUserId(req), req.query.walletAddress));
+  } catch {
+    res.status(400).json({ error: 'Invalid wallet address' });
+  }
+});
+
 // Link wallet address to user
 router.post("/link-wallet", requireAuthentication, async (req, res) => {
   try {
     const clerkId = getUserId(req);
-    const { walletAddress } = req.body;
+    const { walletAddress, signature, challengeId } = req.body;
 
     if (!walletAddress || !/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
       return res.status(400).json({ error: "Invalid wallet address" });
     }
+
+    if (!verifyChallenge(clerkId, walletAddress, challengeId, signature)) {
+      return res.status(403).json({ error: 'Sign the wallet link request to prove you control this address.' });
+    }
+    const { data: linked, error: lookupError } = await supabase.from('users')
+      .select('id').eq('wallet_address', walletAddress.toLowerCase()).neq('clerk_id', clerkId).limit(1);
+    if (lookupError) throw lookupError;
+    if (linked?.length) return res.status(409).json({ error: 'This wallet is already linked to another TaskStaker account.' });
 
     const { data, error } = await supabase
       .from("users")

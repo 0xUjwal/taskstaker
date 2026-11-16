@@ -1,3 +1,4 @@
+import { signer } from './web3';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 async function fetchApi(path, options = {}) {
@@ -31,12 +32,18 @@ export const registerUser = (token, username) =>
     body: JSON.stringify({ username }),
   });
 
-export const linkWallet = (token, walletAddress) =>
-  fetchApi("/api/users/link-wallet", {
-    method: "POST",
+export async function linkWallet(token, walletAddress) {
+  if (!signer) throw new Error('Connect your wallet first.');
+  const challenge = await fetchApi(`/api/users/wallet-challenge?walletAddress=${encodeURIComponent(walletAddress)}`, {
     headers: authHeaders(token),
-    body: JSON.stringify({ walletAddress }),
   });
+  const signature = await signer.signMessage(challenge.message);
+  return fetchApi('/api/users/link-wallet', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ walletAddress, signature, challengeId: challenge.challengeId }),
+  });
+}
 
 export const resolveUser = (username) =>
   fetchApi(`/api/users/resolve/${username}`);
