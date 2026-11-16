@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#ffc5c5",
+                      "surface-container": "#1b1b1b",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#450000",
+                      "error-dim": "#d73333",
+                      "outline-variant": "#353535",
+                      "surface": "#000000",
+                      "surface-container-high": "#242424",
+                      "primary-fixed": "#ff0000",
+                      "on-secondary-fixed-variant": "#c60000",
+                      "tertiary-fixed": "#ff5555",
+                      "inverse-primary": "#700000",
+                      "error": "#ff6e6e",
+                      "on-surface-variant": "#a6a6a6",
+                      "on-error-container": "#ffb2b2",
+                      "on-surface": "#ffffff",
+                      "primary-dim": "#ee0000",
+                      "tertiary-fixed-dim": "#ed0000",
+                      "tertiary-container": "#ff0000",
+                      "primary-container": "#ff0000",
+                      "on-primary-container": "#ffffff",
+                      "surface-tint": "#ff0000",
+                      "surface-container-highest": "#2e2e2e",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#000000",
+                      "secondary-dim": "#ff3333",
+                      "inverse-surface": "#ffffff",
+                      "on-secondary-fixed": "#860000",
+                      "surface-variant": "#2e2e2e",
+                      "on-secondary-container": "#ffffff",
+                      "surface-container-low": "#131313",
+                      "surface-bright": "#353535",
+                      "background": "#000000",
+                      "on-tertiary-fixed-variant": "#660000",
+                      "tertiary": "#ff3d3d",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed-dim": "#ffb3b3",
+                      "secondary": "#ff4d4d",
+                      "surface-dim": "#000000",
+                      "on-primary-fixed-variant": "#650000",
+                      "error-container": "#a70101",
+                      "on-background": "#ffffff",
+                      "on-tertiary-fixed": "#460000",
+                      "secondary-container": "#e50000",
+                      "on-tertiary-container": "#5b0000",
+                      "primary": "#ff0000",
+                      "on-error": "#490000",
+                      "outline": "#8e7070",
+                      "primary-fixed-dim": "#ee0000",
+                      "tertiary-dim": "#ed0000",
+                      "inverse-on-surface": "#6c5050"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Space Grotesk"],
+                      "body": ["Manrope"],
+                      "label": ["Space Grotesk"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(27, 27, 27, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 0, 0.1);
+        }
+        .plasma-glow-red-primary:hover {
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+        }
+        .plasma-glow-white:hover {
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary min-h-screen overflow-x-hidden">
+<!-- TopNavBar (Shared Component Integration) -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 bg-[#131313]/60 backdrop-blur-xl shadow-[0_0_20px_rgba(255,0,0,0.1)] border-b border-[#353535]">
+<div class="text-2xl font-black uppercase text-white font-headline tracking-tight">TaskStaker</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-gray-400 font-medium hover:text-red-400 transition-colors font-label uppercase tracking-widest text-xs" href="#">Governance</a>
+<a class="text-gray-400 font-medium hover:text-red-400 transition-colors font-label uppercase tracking-widest text-xs" href="#">Docs</a>
+<div class="flex items-center gap-4 border-l border-outline-variant pl-8">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-red-500 transition-colors">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-red-500 transition-colors">settings</span>
+<button class="bg-primary text-white px-6 py-2 rounded-xl font-headline font-bold text-sm hover:scale-105 active:scale-95 duration-200 transition-all">Connect Wallet</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Shared Component Integration) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#1B1B1B] border-r border-[#353535] flex flex-col pt-24 pb-8 z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 p-4 bg-[#131313] rounded-lg">
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden">
+<img alt="User Identity" class="w-full h-full object-cover" data-alt="Futuristic cyborg portrait with glowing violet neon lines and sleek metallic armor pieces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx6KK_zUle9VEuatkuzfFZfOwhMDYgDyJVVubAz0NUaGHYSYOITobGL5e8aDifgLVhrv3itkOoBwwscVmWxl_M9xE30b2a3hKKvioYtEcJnfSL7HV2wFP_RcjqqvtahMOB4cx9ySHJpfz-nrlaa-Iw2G4RT4djWTojllUsiCKAqxYr6zFdFHxjcpER2aOWucWioHWO_5yCyBlG_Y6HSab5oHs_P-ibmtalSJgjAxELhOVrw7MIQwnSM4yC7Fxm5OqE8gBFDW68bA"/>
+</div>
+<div>
+<p class="font-headline text-xs font-bold text-white tracking-wider">Validator</p>
+<p class="font-body text-[10px] text-red-500 uppercase font-bold">Crimson Protocol</p>
+</div>
+</div>
+</div>
+<nav class="flex-grow flex flex-col gap-1">
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all font-['Space_Grotesk'] uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined text-red-500">dashboard</span> Dashboard
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all font-['Space_Grotesk'] uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined text-red-500">add_box</span> Create Task
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all font-['Space_Grotesk'] uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined text-red-500">verified</span> Proof Hub
+        </a>
+<a class="flex items-center gap-3 bg-red-500/10 text-red-500 border-r-4 border-red-500 p-4 font-['Space_Grotesk'] uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined">gavel</span> Validator
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all font-['Space_Grotesk'] uppercase font-bold text-sm" href="#">
+<span class="material-symbols-outlined text-red-500">account_balance_wallet</span> Wallet
+        </a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-red-500 text-white py-3 rounded-lg font-headline text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-all active:translate-x-1 duration-150">Stake Assets</button>
+<div class="mt-4 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-gray-500 px-4 py-2 hover:text-white transition-colors text-xs font-label" href="#">
+<span class="material-symbols-outlined text-sm">help</span> Support
+            </a>
+<a class="flex items-center gap-3 text-gray-500 px-4 py-2 hover:text-red-500 transition-colors text-xs font-label" href="#">
+<span class="material-symbols-outlined text-sm">logout</span> Sign Out
+            </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pl-64 pt-20 min-h-screen">
+<div class="max-w-[1600px] mx-auto p-8 h-[calc(100vh-5rem)] flex flex-col">
+<!-- Header Area -->
+<header class="flex justify-between items-end mb-8">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-red-500/10 text-red-500 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-red-500/20">Task ID: 8829-X</span>
+<span class="text-gray-500 text-[10px] uppercase font-label tracking-widest">• Submitted 4m ago</span>
+</div>
+<h1 class="text-4xl font-headline font-bold text-white tracking-tight">Quantum Computing Research Proof</h1>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-high p-4 rounded-xl border border-outline-variant">
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-gray-500 font-label">Potential Reward</p>
+<p class="text-xl font-headline font-bold text-red-500">1,250.00 TKS</p>
+</div>
+<div class="h-10 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-red-500" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-headline font-bold text-xs uppercase tracking-tighter">Neural Network Verified</span>
+</div>
+</div>
+</header>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-8 flex-grow mb-8 min-h-0">
+<!-- Left Side: Proof Submission -->
+<div class="col-span-12 lg:col-span-7 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Evidence Preview</h2>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-bright transition-colors text-white">
+<span class="material-symbols-outlined text-sm">zoom_in</span>
+</button>
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-bright transition-colors text-white">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+</div>
+<!-- Evidence Canvas -->
+<div class="flex-grow glass-panel rounded-xl overflow-hidden relative group border-white/5">
+<img alt="Quantum Circuit Visualization" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700 grayscale hover:grayscale-0" data-alt="Detailed technical blueprint of a quantum computing circuit with intricate lines, neon blue highlights, and complex node connections on a dark grid" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwo5j0gqUrotB1z5DmNja43NAriPJcCr_yrWbusI8LudCX0iLUre4kNO7vFdVX6Dqc37DaupdVmLS4aYH8qZJdr17pEHQ0v3fOn0sHLIdTPLtabIpkNNX7PPaNQ5GVljteaX4Lkg0AY5TgtV9CK1mjbqKpSnpdGXxLMHd_U30fyG-rtx3v2_gI37sKbSP1MCkXwQGSMNITwrjNygDNWG23VYT8YVBYgYZV4aIY4VSxFcfUu-E4iRHKXDqQisSf5_1IGOMMnGPDPA"/>
+<!-- Overlay Labels -->
+<div class="absolute inset-0 p-6 pointer-events-none">
+<div class="inline-flex items-center gap-2 bg-black border border-red-500/40 px-3 py-1.5 rounded-full text-[10px] text-white font-headline font-medium">
+<span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                            DATA_STREAM_STABLE
+                        </div>
+</div>
+<!-- Zoom Indicator -->
+<div class="absolute bottom-6 left-6 bg-black/80 backdrop-blur px-4 py-2 rounded-lg border border-outline-variant text-[10px] text-gray-400">
+                        Page 1 of 12 — Research_Paper_Final.pdf
+                    </div>
+</div>
+</div>
+<!-- Right Side: AI Insights Panel -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+<div class="glass-panel rounded-xl p-6 flex flex-col gap-6 h-full border-red-500/10">
+<div>
+<h2 class="font-headline text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-6">AI Audit Insights</h2>
+<!-- Trust Indicators Bento Section -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-red-500">
+<p class="text-[10px] text-gray-500 uppercase font-label tracking-widest mb-1">Reputation Score</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-white">98.4</span>
+<span class="text-red-400 text-xs font-bold mb-1">+2.1%</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-white">
+<p class="text-[10px] text-gray-500 uppercase font-label tracking-widest mb-1">Risk Assessment</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-white">LOW</span>
+<span class="material-symbols-outlined text-red-500 mb-1">shield_with_heart</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Risk Markers -->
+<div class="space-y-3">
+<h3 class="text-[10px] font-label text-gray-500 uppercase tracking-widest">Metadata Anomalies</h3>
+<div class="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-red-500 text-lg">check_circle</span>
+<span class="text-xs font-medium text-white">GPS Tag Verification</span>
+</div>
+<span class="text-[10px] text-gray-500">MATCHED</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-red-500 text-lg">check_circle</span>
+<span class="text-xs font-medium text-white">Timestamp Sequence</span>
+</div>
+<span class="text-[10px] text-gray-500">VALID</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-white text-lg">info</span>
+<span class="text-xs font-medium text-white">AI Generation Profile</span>
+</div>
+<span class="text-[10px] text-gray-500">0.02% PROB.</span>
+</div>
+</div>
+<!-- Summary -->
+<div class="mt-auto bg-red-500/5 p-4 rounded-xl border border-red-500/20">
+<p class="text-xs text-red-200 leading-relaxed">
+<span class="font-bold text-red-400">Summary:</span> The submitted document contains high-entropy cryptographic proofs and aligns with the expected computational output of a D-Wave system. No structural tampering detected.
+                        </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action Bar -->
+<footer class="flex items-center gap-6 mt-auto">
+<button class="flex-1 h-20 bg-surface-container-high text-white rounded-xl font-headline font-black text-xl uppercase tracking-tighter border border-white/10 plasma-glow-white transition-all duration-300 flex items-center justify-center gap-3 opacity-80 hover:opacity-100">
+<span class="material-symbols-outlined text-3xl">close</span>
+                Reject Submission
+            </button>
+<button class="flex-[2] h-20 bg-red-600 text-white rounded-xl font-headline font-black text-xl uppercase tracking-tighter plasma-glow-red-primary transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Approve &amp; Stake Reward
+            </button>
+</footer>
+</div>
+</main>
+<!-- Footer (Shared Component Integration) -->
+<footer class="ml-64 border-t border-[#353535] bg-[#131313] py-8">
+<div class="flex justify-between items-center px-12 w-full font-['Inter'] text-xs tracking-widest uppercase">
+<div class="text-white font-bold">© 2024 TaskStaker | Crimson Protocol</div>
+<div class="flex gap-8">
+<a class="text-gray-500 hover:text-white transition-all opacity-80 hover:opacity-100" href="#">Security</a>
+<a class="text-gray-500 hover:text-white transition-all opacity-80 hover:opacity-100" href="#">Terms</a>
+<a class="text-gray-500 hover:text-white transition-all opacity-80 hover:opacity-100" href="#">Discord</a>
+</div>
+</div>
+</footer>
+</body></html>

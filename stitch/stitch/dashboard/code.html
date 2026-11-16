@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskStaker Pro | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#e7c5ff",
+                    "surface-container": "#201331",
+                    "on-tertiary": "#006437",
+                    "on-primary-fixed": "#004145",
+                    "error-dim": "#d73357",
+                    "outline-variant": "#4f435e",
+                    "surface": "#130921",
+                    "surface-container-high": "#27193a",
+                    "primary-fixed": "#00f1fe",
+                    "on-secondary-fixed-variant": "#7900c6",
+                    "tertiary-fixed": "#00fd93",
+                    "inverse-primary": "#006a70",
+                    "error": "#ff6e84",
+                    "on-surface-variant": "#b5a5c6",
+                    "on-error-container": "#ffb2b9",
+                    "on-surface": "#f0dfff",
+                    "primary-dim": "#00e2ee",
+                    "tertiary-fixed-dim": "#00ed89",
+                    "tertiary-container": "#00fd93",
+                    "primary-container": "#00f1fe",
+                    "on-primary-container": "#00555a",
+                    "surface-tint": "#99f7ff",
+                    "surface-container-highest": "#2e1e42",
+                    "on-secondary": "#340059",
+                    "surface-container-lowest": "#000000",
+                    "secondary-dim": "#a533ff",
+                    "inverse-surface": "#fff7ff",
+                    "on-secondary-fixed": "#500086",
+                    "surface-variant": "#2e1e42",
+                    "on-secondary-container": "#fff5ff",
+                    "surface-container-low": "#190d29",
+                    "surface-bright": "#35244b",
+                    "background": "#130921",
+                    "on-tertiary-fixed-variant": "#006638",
+                    "tertiary": "#a2ffbf",
+                    "on-primary": "#005f64",
+                    "secondary-fixed-dim": "#ddb3ff",
+                    "secondary": "#c47fff",
+                    "surface-dim": "#130921",
+                    "on-primary-fixed-variant": "#006065",
+                    "error-container": "#a70138",
+                    "on-background": "#f0dfff",
+                    "on-tertiary-fixed": "#004624",
+                    "secondary-container": "#8c00e5",
+                    "on-tertiary-container": "#005b31",
+                    "primary": "#99f7ff",
+                    "on-error": "#490013",
+                    "outline": "#7e708e",
+                    "primary-fixed-dim": "#00e2ee",
+                    "tertiary-dim": "#00ed89",
+                    "inverse-on-surface": "#5d506c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #130921; color: #f0dfff; font-family: 'Manrope', sans-serif; }
+        .glass-card {
+            background: rgba(46, 30, 66, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(153, 247, 255, 0.1);
+        }
+        .plasma-gradient {
+            background: linear-gradient(135deg, #99F7FF 0%, #C47FFF 100%);
+        }
+        .neon-border {
+            box-shadow: inset 0 0 15px rgba(153, 247, 255, 0.05), 0 0 20px rgba(157, 0, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#130921]/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 shadow-[0_0_20px_rgba(157,0,255,0.05)] font-['Space_Grotesk'] tracking-tight">
+<div class="text-2xl font-bold tracking-tighter bg-gradient-to-r from-[#99F7FF] to-[#C47FFF] bg-clip-text text-transparent">TaskStaker</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-slate-400 font-medium hover:text-white transition-colors" href="#">Governance</a>
+<a class="text-slate-400 font-medium hover:text-white transition-colors" href="#">Docs</a>
+<div class="flex gap-4 ml-4">
+<button class="p-2 text-slate-400 hover:bg-[#9D00FF]/10 rounded-full transition-all duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-400 hover:bg-[#9D00FF]/10 rounded-full transition-all duration-300">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<button class="px-6 py-2.5 plasma-gradient rounded-xl text-on-primary-container font-bold active:scale-95 duration-200">Connect Wallet</button>
+</div>
+<div class="bg-gradient-to-r from-[#9D00FF]/10 to-transparent h-[1px] w-full absolute bottom-0"></div>
+</nav>
+<!-- SideNavBar (Hidden on Mobile) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#130921] border-r border-[#9D00FF]/10 hidden md:flex flex-col pt-24 pb-8 z-40">
+<div class="px-6 mb-10 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-[#9D00FF]/30">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Stylized 3D avatar profile picture of a tech professional with purple accents and a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD07yc7Yp3YoUfur5sNmMkef8rAmc9vnpfCo8bU5oSTRFvzpuCiVCrASu35pCMKpki4m6j1sp6UXJutaNAsenZ3d_kkjDB9qxwXIeheKQOukonb9opBJyHxSBWxY79IEcFc079OfWZtOT-ykHT7BUNhcgNwQRGlH0aaWQ5Xc6veQbW_tPSTM5nLHMpFHTfWn_HI71aD0MMmQE0ItVedbj8N7Jq4eSWI4Q02-fEPUMwNuJ64KZPgH3r8i9EHs-iXokRV-eESBftTxg"/>
+</div>
+<div>
+<div class="text-white font-headline text-sm font-bold">TaskStaker Pro</div>
+<div class="text-tertiary text-[10px] font-label uppercase tracking-widest">AI-Verified</div>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-3 bg-[#9D00FF]/10 text-white border-r-4 border-[#9D00FF] p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:bg-white/5 transition-all hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">add_task</span>
+                Create Task
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:bg-white/5 transition-all hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">verified</span>
+                Proof Hub
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:bg-white/5 transition-all hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">rule</span>
+                Validator
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:bg-white/5 transition-all hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+                Wallet
+            </a>
+</nav>
+<div class="px-6 mb-8">
+<button class="w-full py-4 rounded-xl plasma-gradient text-on-primary-container font-headline font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">
+                Stake New Task
+            </button>
+</div>
+<div class="border-t border-[#9D00FF]/10 pt-4">
+<a class="flex items-center gap-3 text-slate-500 p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-28 pb-12 px-6 md:px-10">
+<header class="mb-10">
+<h1 class="text-4xl md:text-5xl font-headline font-bold text-white tracking-tighter mb-2">Protocol <span class="text-primary">Overview</span></h1>
+<p class="text-on-surface-variant font-body">Global staking operations and AI-verification status.</p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Active Tasks Card (Large) -->
+<section class="md:col-span-8 glass-card rounded-xl p-8 neon-border relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8">
+<span class="material-symbols-outlined text-primary/20 text-7xl opacity-20">rocket_launch</span>
+</div>
+<div class="flex justify-between items-center mb-8 relative z-10">
+<h2 class="font-headline text-xl font-bold tracking-tight text-white">Active Tasks</h2>
+<span class="text-xs font-label bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">12 TOTAL</span>
+</div>
+<div class="space-y-6 relative z-10">
+<!-- Task Item 1 -->
+<div class="bg-surface-container-low p-5 rounded-lg border-l-4 border-primary group hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-on-surface font-bold">Neural Network Training - Batch #42</h3>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Staked: 450.00 STK</p>
+</div>
+<span class="text-xs px-2 py-1 bg-tertiary-container/10 text-tertiary rounded font-bold">PENDING VERIFICATION</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full plasma-gradient" style="width: 78%"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] font-label text-slate-500">
+<span>PROGRESS: 78%</span>
+<span>ETA: 2h 14m</span>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="bg-surface-container-low p-5 rounded-lg border-l-4 border-secondary group hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-on-surface font-bold">Sentiment Analysis Protocol Beta</h3>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Staked: 1,200.00 STK</p>
+</div>
+<span class="text-xs px-2 py-1 bg-primary-container/10 text-primary rounded font-bold">VERIFYING...</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 42%"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] font-label text-slate-500">
+<span>PROGRESS: 42%</span>
+<span>ETA: 5h 30m</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Side Cards -->
+<div class="md:col-span-4 grid grid-cols-1 gap-6">
+<!-- Total Staked -->
+<div class="glass-card rounded-xl p-6 neon-border bg-gradient-to-br from-surface-container-high to-surface">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<h2 class="font-headline text-sm font-bold text-slate-300">Total Staked</h2>
+</div>
+<div class="text-3xl font-headline font-bold text-white mb-2">18,540.22 <span class="text-primary text-sm">STK</span></div>
+<div class="text-tertiary text-xs font-label flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                        +12.4% vs last cycle
+                    </div>
+</div>
+<!-- Earnings/Loss -->
+<div class="glass-card rounded-xl p-6 neon-border bg-gradient-to-br from-surface-container-high to-surface">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-secondary/10 rounded-lg text-secondary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<h2 class="font-headline text-sm font-bold text-slate-300">Total Earnings</h2>
+</div>
+<div class="text-3xl font-headline font-bold text-white mb-2">$2,441.80 <span class="text-secondary text-sm">USD</span></div>
+<div class="text-tertiary text-xs font-label flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Harvesting in 12h
+                    </div>
+</div>
+</div>
+<!-- AI Assistant Widget (Smaller Bento) -->
+<section class="md:col-span-4 glass-card rounded-xl p-6 flex flex-col items-center justify-center text-center gap-4 border border-[#9D00FF]/20">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-2 border-tertiary/30 p-2">
+<div class="w-full h-full rounded-full plasma-gradient animate-pulse shadow-[0_0_20px_rgba(153,247,255,0.4)]"></div>
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 bg-surface-bright rounded-full border border-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-tertiary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline font-bold text-white">TaskStaker AI</h3>
+<p class="text-xs text-on-surface-variant mt-1">Operational &amp; Scanning Proofs</p>
+</div>
+<div class="w-full bg-surface-container-highest p-3 rounded-lg text-[10px] text-left font-mono text-tertiary/80">
+                    &gt; SCANNING_BLOCK_0x9A...<br/>
+                    &gt; PROOF_VALIDATED: OK<br/>
+                    &gt; LATENCY: 14ms
+                </div>
+</section>
+<!-- Completed Tasks Card -->
+<section class="md:col-span-8 glass-card rounded-xl p-8 neon-border">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline text-xl font-bold text-white">Recent Activity</h2>
+<button class="text-xs text-primary font-label hover:underline">VIEW HISTORY</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] font-label text-slate-500 border-b border-white/5 uppercase tracking-widest">
+<th class="pb-4 font-normal">Task Type</th>
+<th class="pb-4 font-normal">Date</th>
+<th class="pb-4 font-normal">Reward</th>
+<th class="pb-4 font-normal">Status</th>
+</tr>
+</thead>
+<tbody class="text-sm font-body">
+<tr class="border-b border-white/5">
+<td class="py-4 text-white font-medium">Dataset Curation</td>
+<td class="py-4 text-slate-400">Oct 24, 2024</td>
+<td class="py-4 text-tertiary">+14.2 STK</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary border border-tertiary/20">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                        VERIFIED
+                                    </span>
+</td>
+</tr>
+<tr class="border-b border-white/5">
+<td class="py-4 text-white font-medium">Model Validation</td>
+<td class="py-4 text-slate-400">Oct 23, 2024</td>
+<td class="py-4 text-tertiary">+8.5 STK</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary border border-tertiary/20">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                        VERIFIED
+                                    </span>
+</td>
+</tr>
+<tr>
+<td class="py-4 text-white font-medium">Image Tagging V2</td>
+<td class="py-4 text-slate-400">Oct 22, 2024</td>
+<td class="py-4 text-error">-0.5 STK</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-error/10 text-error border border-error/20">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                                        FAILED
+                                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="md:ml-64 bg-[#130921] w-full py-12 border-t border-[#9D00FF]/5 font-['Manrope'] text-sm">
+<div class="max-w-7xl mx-auto px-8 flex flex-col items-center gap-4">
+<div class="text-lg font-black text-[#9D00FF]">TaskStaker</div>
+<div class="flex gap-6">
+<a class="text-slate-500 hover:text-[#99F7FF] transition-all" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-[#99F7FF] transition-all" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-[#99F7FF] transition-all" href="#">Security Audit</a>
+</div>
+<div class="text-slate-500 mt-4 opacity-50 uppercase tracking-widest text-[10px]">
+                © 2024 TaskStaker. Encrypted via Ethereal Vault.
+            </div>
+</div>
+</footer>
+<!-- Mobile Nav Bar (Visible only on small screens) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#130921]/90 backdrop-blur-lg flex justify-around items-center border-t border-white/5 z-50">
+<a class="flex flex-col items-center gap-1 text-[#9D00FF]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-label">HOME</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="text-[10px] font-label">CREATE</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-label">WALLET</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label">ME</span>
+</a>
+</nav>
+</body></html>

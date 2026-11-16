@@ -1,0 +1,48 @@
+{
+  "name": "taskstaker",
+  "version": "1.0.0",
+  "description": "Decentralized task accountability platform with ETH stakes, IPFS proofs, and smart contract validation",
+  "private": true,
+  "workspaces": [
+    "contract",
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "setup": "npm install --prefix contract && npm install --prefix frontend && npm install --prefix backend",
+    "compile": "npm run compile --prefix contract",
+    "node": "npm run node --prefix contract",
+    "deploy:local": "npm run deploy:local --prefix contract",
+    "deploy:testnet": "npm run deploy:testnet --prefix contract",
+    "dev": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run preview --prefix frontend"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "solidity",
+    "smart-contracts",
+    "web3",
+    "dapp",
+    "react",
+    "hardhat",
+    "ipfs",
+    "accountability",
+    "task-management"
+  ],
+  "author": "TaskStaker Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/taskstaker"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.5.0"
+  }
+}

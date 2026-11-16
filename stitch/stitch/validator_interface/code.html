@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#e7c5ff",
+                      "surface-container": "#201331",
+                      "on-tertiary": "#006437",
+                      "on-primary-fixed": "#004145",
+                      "error-dim": "#d73357",
+                      "outline-variant": "#4f435e",
+                      "surface": "#130921",
+                      "surface-container-high": "#27193a",
+                      "primary-fixed": "#00f1fe",
+                      "on-secondary-fixed-variant": "#7900c6",
+                      "tertiary-fixed": "#00fd93",
+                      "inverse-primary": "#006a70",
+                      "error": "#ff6e84",
+                      "on-surface-variant": "#b5a5c6",
+                      "on-error-container": "#ffb2b9",
+                      "on-surface": "#f0dfff",
+                      "primary-dim": "#00e2ee",
+                      "tertiary-fixed-dim": "#00ed89",
+                      "tertiary-container": "#00fd93",
+                      "primary-container": "#00f1fe",
+                      "on-primary-container": "#00555a",
+                      "surface-tint": "#99f7ff",
+                      "surface-container-highest": "#2e1e42",
+                      "on-secondary": "#340059",
+                      "surface-container-lowest": "#000000",
+                      "secondary-dim": "#a533ff",
+                      "inverse-surface": "#fff7ff",
+                      "on-secondary-fixed": "#500086",
+                      "surface-variant": "#2e1e42",
+                      "on-secondary-container": "#fff5ff",
+                      "surface-container-low": "#190d29",
+                      "surface-bright": "#35244b",
+                      "background": "#130921",
+                      "on-tertiary-fixed-variant": "#006638",
+                      "tertiary": "#a2ffbf",
+                      "on-primary": "#005f64",
+                      "secondary-fixed-dim": "#ddb3ff",
+                      "secondary": "#c47fff",
+                      "surface-dim": "#130921",
+                      "on-primary-fixed-variant": "#006065",
+                      "error-container": "#a70138",
+                      "on-background": "#f0dfff",
+                      "on-tertiary-fixed": "#004624",
+                      "secondary-container": "#8c00e5",
+                      "on-tertiary-container": "#005b31",
+                      "primary": "#99f7ff",
+                      "on-error": "#490013",
+                      "outline": "#7e708e",
+                      "primary-fixed-dim": "#00e2ee",
+                      "tertiary-dim": "#00ed89",
+                      "inverse-on-surface": "#5d506c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Space Grotesk"],
+                      "body": ["Manrope"],
+                      "label": ["Space Grotesk"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(46, 30, 66, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(153, 247, 255, 0.1);
+        }
+        .plasma-glow-green:hover {
+            box-shadow: 0 0 30px rgba(0, 253, 147, 0.3);
+        }
+        .plasma-glow-red:hover {
+            box-shadow: 0 0 30px rgba(255, 110, 132, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary min-h-screen overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 w-full bg-[#130921]/60 backdrop-blur-xl shadow-[0_0_20px_rgba(157,0,255,0.05)]">
+<div class="text-2xl font-bold tracking-tighter bg-gradient-to-r from-[#99F7FF] to-[#C47FFF] bg-clip-text text-transparent font-headline">TaskStaker</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-slate-400 font-medium hover:text-white transition-colors font-label uppercase tracking-widest text-xs" href="#">Governance</a>
+<a class="text-slate-400 font-medium hover:text-white transition-colors font-label uppercase tracking-widest text-xs" href="#">Docs</a>
+<div class="flex items-center gap-4 border-l border-outline-variant pl-8">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">settings</span>
+<button class="bg-gradient-to-r from-primary to-primary-dim text-on-primary-container px-6 py-2 rounded-xl font-headline font-bold text-sm hover:scale-105 active:scale-95 transition-all">Connect Wallet</button>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 bg-gradient-to-r from-[#9D00FF]/10 to-transparent h-[1px] w-full"></div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-[#9D00FF]/10 bg-[#130921] flex flex-col h-full pt-24 pb-8 z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 p-4 bg-surface-container rounded-lg">
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Futuristic cyborg portrait with glowing violet neon lines and sleek metallic armor pieces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx6KK_zUle9VEuatkuzfFZfOwhMDYgDyJVVubAz0NUaGHYSYOITobGL5e8aDifgLVhrv3itkOoBwwscVmWxl_M9xE30b2a3hKKvioYtEcJnfSL7HV2wFP_RcjqqvtahMOB4cx9ySHJpfz-nrlaa-Iw2G4RT4djWTojllUsiCKAqxYr6zFdFHxjcpER2aOWucWioHWO_5yCyBlG_Y6HSab5oHs_P-ibmtalSJgjAxELhOVrw7MIQwnSM4yC7Fxm5OqE8gBFDW68bA"/>
+</div>
+<div>
+<p class="font-headline text-xs font-bold text-white tracking-wider">Validator</p>
+<p class="font-body text-[10px] text-tertiary">AI-Verified</p>
+</div>
+</div>
+</div>
+<nav class="flex-grow">
+<a class="flex items-center gap-3 text-slate-500 p-4 hover:bg-white/5 transition-all font-label text-xs uppercase tracking-[0.05em] translate-x-0 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 hover:bg-white/5 transition-all font-label text-xs uppercase tracking-[0.05em] translate-x-0 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">add_task</span> Create Task
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 hover:bg-white/5 transition-all font-label text-xs uppercase tracking-[0.05em] translate-x-0 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">verified</span> Proof Hub
+            </a>
+<a class="flex items-center gap-3 bg-[#9D00FF]/10 text-white border-r-4 border-[#9D00FF] p-4 font-label text-xs uppercase tracking-[0.05em]" href="#">
+<span class="material-symbols-outlined">rule</span> Validator
+            </a>
+<a class="flex items-center gap-3 text-slate-500 p-4 hover:bg-white/5 transition-all font-label text-xs uppercase tracking-[0.05em] translate-x-0 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span> Wallet
+            </a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-secondary-container/20 text-secondary border border-secondary/30 py-3 rounded-lg font-headline text-xs font-bold uppercase tracking-widest hover:bg-secondary hover:text-on-secondary transition-all">Stake New Task</button>
+<div class="mt-4 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-slate-500 px-4 py-2 hover:text-white transition-colors text-xs font-label" href="#">
+<span class="material-symbols-outlined text-sm">help</span> Support
+                </a>
+<a class="flex items-center gap-3 text-slate-500 px-4 py-2 hover:text-error transition-colors text-xs font-label" href="#">
+<span class="material-symbols-outlined text-sm">logout</span> Sign Out
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pl-64 pt-20 min-h-screen">
+<div class="max-w-[1600px] mx-auto p-8 h-[calc(100vh-5rem)] flex flex-col">
+<!-- Header Area -->
+<header class="flex justify-between items-end mb-8">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border border-tertiary/20">Task ID: 8829-X</span>
+<span class="text-slate-500 text-[10px] uppercase font-label tracking-widest">• Submitted 4m ago</span>
+</div>
+<h1 class="text-4xl font-headline font-bold text-white tracking-tight">Quantum Computing Research Proof</h1>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-high p-4 rounded-xl">
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-label">Potential Reward</p>
+<p class="text-xl font-headline font-bold text-primary">1,250.00 TKS</p>
+</div>
+<div class="h-10 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-headline font-bold text-xs uppercase tracking-tighter">Neural Network Verified</span>
+</div>
+</div>
+</header>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-8 flex-grow mb-8 min-h-0">
+<!-- Left Side: Proof Submission -->
+<div class="col-span-12 lg:col-span-7 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Evidence Preview</h2>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm">zoom_in</span>
+</button>
+<button class="p-2 rounded-lg bg-surface-container hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+</div>
+<!-- Evidence Canvas -->
+<div class="flex-grow glass-panel rounded-xl overflow-hidden relative group">
+<img alt="Quantum Circuit Visualization" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" data-alt="Detailed technical blueprint of a quantum computing circuit with intricate lines, neon blue highlights, and complex node connections on a dark grid" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwo5j0gqUrotB1z5DmNja43NAriPJcCr_yrWbusI8LudCX0iLUre4kNO7vFdVX6Dqc37DaupdVmLS4aYH8qZJdr17pEHQ0v3fOn0sHLIdTPLtabIpkNNX7PPaNQ5GVljteaX4Lkg0AY5TgtV9CK1mjbqKpSnpdGXxLMHd_U30fyG-rtx3v2_gI37sKbSP1MCkXwQGSMNITwrjNygDNWG23VYT8YVBYgYZV4aIY4VSxFcfUu-E4iRHKXDqQisSf5_1IGOMMnGPDPA"/>
+<!-- Overlay Labels -->
+<div class="absolute inset-0 p-6 pointer-events-none">
+<div class="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full text-[10px] text-white font-headline font-medium">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                DATA_STREAM_STABLE
+                            </div>
+</div>
+<!-- Zoom Indicator -->
+<div class="absolute bottom-6 left-6 bg-surface-container-highest/80 backdrop-blur px-4 py-2 rounded-lg border border-outline-variant/30 text-[10px] text-slate-300">
+                            Page 1 of 12 — Research_Paper_Final.pdf
+                        </div>
+</div>
+</div>
+<!-- Right Side: AI Insights Panel -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+<div class="glass-panel rounded-xl p-6 flex flex-col gap-6 h-full">
+<div>
+<h2 class="font-headline text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-6">AI Audit Insights</h2>
+<!-- Trust Indicators Bento Section -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-primary">
+<p class="text-[10px] text-slate-500 uppercase font-label tracking-widest mb-1">Reputation Score</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-white">98.4</span>
+<span class="text-tertiary text-xs font-bold mb-1">+2.1%</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-secondary">
+<p class="text-[10px] text-slate-500 uppercase font-label tracking-widest mb-1">Risk Assessment</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-white">LOW</span>
+<span class="material-symbols-outlined text-tertiary mb-1">shield_with_heart</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Risk Markers -->
+<div class="space-y-3">
+<h3 class="text-[10px] font-label text-slate-500 uppercase tracking-widest">Metadata Anomalies</h3>
+<div class="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary text-lg">check_circle</span>
+<span class="text-xs font-medium text-on-surface">GPS Tag Verification</span>
+</div>
+<span class="text-[10px] text-slate-500">MATCHED</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary text-lg">check_circle</span>
+<span class="text-xs font-medium text-on-surface">Timestamp Sequence</span>
+</div>
+<span class="text-[10px] text-slate-500">VALID</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container rounded-lg border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-lg">info</span>
+<span class="text-xs font-medium text-on-surface">AI Generation Profile</span>
+</div>
+<span class="text-[10px] text-slate-500">0.02% PROB.</span>
+</div>
+</div>
+<!-- Summary -->
+<div class="mt-auto bg-primary/5 p-4 rounded-xl border border-primary/20">
+<p class="text-xs text-primary-dim leading-relaxed">
+<span class="font-bold">Summary:</span> The submitted document contains high-entropy cryptographic proofs and aligns with the expected computational output of a D-Wave system. No structural tampering detected.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action Bar -->
+<footer class="flex items-center gap-6 mt-auto">
+<button class="flex-1 h-20 bg-surface-container-high text-error rounded-xl font-headline font-black text-xl uppercase tracking-tighter border border-error/20 plasma-glow-red transition-all duration-300 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-3xl">close</span>
+                    Reject Submission
+                </button>
+<button class="flex-[2] h-20 bg-gradient-to-r from-tertiary to-tertiary-fixed text-on-tertiary rounded-xl font-headline font-black text-xl uppercase tracking-tighter plasma-glow-green transition-all duration-300 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    Approve &amp; Stake Reward
+                </button>
+</footer>
+</div>
+</main>
+<!-- Global Footer Decor -->
+<footer class="pl-64 border-t border-[#9D00FF]/5 bg-[#130921] py-12">
+<div class="max-w-7xl mx-auto px-8 flex flex-col items-center gap-4">
+<div class="text-lg font-black text-[#9D00FF] font-headline">TaskStaker</div>
+<div class="flex gap-8 font-body text-sm">
+<a class="text-slate-500 hover:text-[#99F7FF] transition-all" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-[#99F7FF] transition-all" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-[#99F7FF] transition-all" href="#">Security Audit</a>
+</div>
+<p class="font-body text-sm text-slate-500 text-center">© 2024 TaskStaker. Encrypted via Ethereal Vault.</p>
+</div>
+</footer>
+</body></html>

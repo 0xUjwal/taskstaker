@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskStaker Proof Submission - Crimson Protocol</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#FF3B3B",
+                        "primary-dim": "#D32F2F",
+                        "primary-container": "#FF3B3B",
+                        "on-primary": "#FFFFFF",
+                        "on-primary-container": "#FFFFFF",
+                        "secondary": "#FFFFFF",
+                        "secondary-container": "#1B1B1B",
+                        "on-secondary": "#131313",
+                        "tertiary": "#FF3B3B",
+                        "surface": "#000000",
+                        "surface-container": "#131313",
+                        "surface-container-low": "#0A0A0A",
+                        "surface-container-high": "#1B1B1B",
+                        "surface-container-highest": "#242424",
+                        "on-surface": "#FFFFFF",
+                        "on-surface-variant": "#A1A1A1",
+                        "outline": "#353535",
+                        "outline-variant": "#242424",
+                        "error": "#FF3B3B",
+                        "background": "#000000",
+                        "on-background": "#FFFFFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .crimson-glow {
+            box-shadow: 0 0 20px rgba(255, 59, 59, 0.15);
+        }
+        .plasma-bg-crimson {
+            background: radial-gradient(circle at top left, rgba(255, 59, 59, 0.08), transparent 45%),
+                        radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.03), transparent 45%);
+            background-color: #000000;
+        }
+        .scanline {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 59, 59, 0.5), transparent);
+            animation: scan 4s linear infinite;
+            position: absolute;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl shadow-[0_0_20px_rgba(255,59,59,0.1)] h-20 flex justify-between items-center px-8 w-full border-b border-[#353535]">
+<div class="text-2xl font-black uppercase tracking-tighter text-white font-['Space_Grotesk']">
+            TaskStaker
+        </div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-gray-400 font-medium hover:text-red-400 transition-colors font-['Space_Grotesk'] tracking-tight" href="#">Governance</a>
+<a class="text-gray-400 font-medium hover:text-red-400 transition-colors font-['Space_Grotesk'] tracking-tight" href="#">Docs</a>
+<div class="flex items-center gap-4 ml-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="settings">settings</span>
+<button class="bg-primary text-white font-label font-bold px-6 py-2 rounded-lg active:scale-95 transition-all crimson-glow">
+                    Connect Wallet
+                </button>
+</div>
+</div>
+</nav>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-[#353535] bg-[#1B1B1B] hidden lg:flex flex-col pt-24 pb-8">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 p-3 bg-[#131313] rounded-lg">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
+<img alt="User Identity" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnCzz3bilNT8aagycYvZntNtI0c3if9Cl7-6z57NW0e5-hl4AdGDEEyzRz7atNBKoUod1Cln5_6EWwRkJ2RoJC6mQ_ocFTiBOlAJ1vrIJ0kIGPNpuA5CMyMUNm5SJb08-HepSd_4iVSXXOnz6VX_7cVnkWX_EhAofHrdxQXCb_o3fQTKZjLdguFx0hLLkosN7PsqpwQJrW0HiM8IoYbo_IxsPtfDyoHDizGFqIKeG9t37GgzujZtUBcWMAzhWAfJuMgfX3TnhmOg"/>
+</div>
+<div>
+<div class="text-xs font-['Space_Grotesk'] font-bold uppercase tracking-widest text-primary">TaskStaker</div>
+<div class="text-[10px] text-white/60 font-label">Crimson Protocol</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1 px-2">
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all active:translate-x-1 font-['Space_Grotesk'] uppercase font-bold text-xs" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all active:translate-x-1 font-['Space_Grotesk'] uppercase font-bold text-xs" href="#">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span> Create Task
+            </a>
+<a class="flex items-center gap-3 bg-red-500/10 text-red-500 border-r-4 border-red-500 p-4 font-['Space_Grotesk'] uppercase font-bold text-xs" href="#">
+<span class="material-symbols-outlined" data-icon="verified">verified</span> Proof Hub
+            </a>
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all active:translate-x-1 font-['Space_Grotesk'] uppercase font-bold text-xs" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span> Validator
+            </a>
+<a class="flex items-center gap-3 text-white/60 p-4 hover:bg-[#353535] transition-all active:translate-x-1 font-['Space_Grotesk'] uppercase font-bold text-xs" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span> Wallet
+            </a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-4 bg-primary text-white rounded-lg font-['Space_Grotesk'] uppercase font-bold text-xs tracking-widest hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">
+                Stake Assets
+            </button>
+<div class="mt-6 flex flex-col gap-2 border-t border-[#353535] pt-6">
+<a class="flex items-center gap-3 text-gray-500 px-4 py-2 hover:text-white transition-all font-['Manrope'] text-sm" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span> Support
+                </a>
+<a class="flex items-center gap-3 text-gray-500 px-4 py-2 hover:text-primary transition-all font-['Manrope'] text-sm" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="logout">logout</span> Sign Out
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-64 pt-28 px-8 pb-20 min-h-screen plasma-bg-crimson">
+<div class="max-w-6xl mx-auto space-y-12">
+<!-- Header Section -->
+<header class="space-y-2 border-l-4 border-primary pl-6">
+<h1 class="text-5xl md:text-6xl font-headline font-bold tracking-tighter text-white">
+                    Submit <span class="text-primary">Proof of Completion</span>
+</h1>
+<p class="text-on-surface-variant font-body text-lg max-w-2xl">
+                    Securely upload your task deliverables. Crimson Validator V2 will analyze cryptographic integrity and verify requirements in real-time.
+                </p>
+</header>
+<!-- Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Upload Area (Left) -->
+<div class="lg:col-span-7 space-y-8">
+<div class="group relative p-1 rounded-lg bg-gradient-to-br from-primary/40 to-transparent transition-all hover:shadow-[0_0_40px_rgba(255,59,59,0.1)]">
+<div class="bg-[#0A0A0A] rounded-lg border border-outline-variant p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[400px] relative overflow-hidden">
+<div class="scanline opacity-20"></div>
+<div class="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center relative border border-primary/20">
+<div class="absolute inset-0 rounded-full border border-primary/40 animate-ping opacity-10"></div>
+<span class="material-symbols-outlined text-5xl text-primary" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<div class="space-y-2 relative z-10">
+<h3 class="text-2xl font-headline font-semibold text-white">Drag &amp; Drop Proof Assets</h3>
+<p class="text-on-surface-variant font-body">Support for .zip, .pdf, .mp4, and cryptographic signatures.</p>
+</div>
+<button class="px-8 py-4 bg-surface-container-highest rounded-lg text-white font-label text-sm tracking-widest border border-primary/30 hover:bg-primary/20 transition-all group-hover:scale-105">
+                                Browse Local Files
+                            </button>
+</div>
+</div>
+<!-- Previous Submissions List -->
+<div class="bg-surface-container rounded-lg p-8 space-y-6 border border-outline">
+<h4 class="text-xs font-label uppercase tracking-widest text-primary font-bold">Active Verification Queue</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded border-l-2 border-primary">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-primary/10 rounded">
+<span class="material-symbols-outlined text-primary" data-icon="description">description</span>
+</div>
+<div>
+<div class="text-sm font-medium text-white">smart_contract_audit_v4.pdf</div>
+<div class="text-[10px] text-on-surface-variant uppercase">2.4 MB • Processing</div>
+</div>
+</div>
+<div class="flex items-center gap-2 text-primary">
+<span class="text-[10px] font-label font-bold">UPLOADING 68%</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[68%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Analysis Panel (Right) -->
+<div class="lg:col-span-5 space-y-8">
+<div class="bg-[#1B1B1B] rounded-lg p-8 border border-primary/20 shadow-2xl relative overflow-hidden crimson-glow">
+<div class="absolute top-0 right-0 p-4 opacity-5">
+<span class="material-symbols-outlined text-8xl" data-icon="psychology">psychology</span>
+</div>
+<div class="relative space-y-8">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+<h3 class="text-lg font-headline font-bold text-white tracking-tight">CRIMSON AI ACTIVE</h3>
+</div>
+<!-- Confidence Score Gauge -->
+<div class="flex flex-col items-center py-4">
+<div class="relative w-48 h-48 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary filter drop-shadow-[0_0_8px_rgba(255,59,59,0.5)]" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="33.17" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-5xl font-headline font-bold text-white">94%</span>
+<span class="text-[10px] font-label uppercase tracking-widest text-primary">Confidence</span>
+</div>
+</div>
+</div>
+<!-- AI Summary -->
+<div class="space-y-3">
+<label class="text-xs font-label uppercase tracking-widest text-white/60">Summary Analysis</label>
+<div class="p-4 bg-surface-container-low rounded border border-primary/10">
+<p class="text-sm leading-relaxed text-on-surface-variant italic">
+                                        "Deliverables match specified metadata hash. Code quality audit reveals high adherence to security protocols. Semantic analysis of documentation suggests 98% task alignment."
+                                    </p>
+</div>
+</div>
+<!-- AI Questions -->
+<div class="space-y-4">
+<label class="text-xs font-label uppercase tracking-widest text-white/60">Verification Follow-up</label>
+<div class="space-y-3">
+<div class="p-4 bg-surface-container-low rounded text-sm border border-outline hover:border-primary/50 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start">
+<span class="text-white font-medium">Explain the variance in gas optimization?</span>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded text-sm border border-outline hover:border-primary/50 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start">
+<span class="text-white font-medium">Verify the cross-chain bridge logic source?</span>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-5 bg-primary rounded text-white font-label font-bold tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/40">
+                                FINAL SUBMIT PROOF
+                            </button>
+</div>
+</div>
+<!-- Security Badge -->
+<div class="flex items-center gap-4 px-6 py-4 bg-surface-container-low border border-primary/10 rounded">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<div>
+<div class="text-xs font-bold text-white uppercase tracking-wider">Crimson Vault Protocol</div>
+<div class="text-[10px] text-on-surface-variant">Proof assets are encrypted via SHA-512 Crimson Standard.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-6 mt-auto border-t border-[#353535] bg-[#131313]">
+<div class="max-w-7xl mx-auto px-12 flex justify-between items-center w-full ml-0 md:ml-64">
+<div class="text-white font-bold font-['Inter'] text-xs tracking-widest uppercase">
+                TaskStaker <span class="text-red-500">| Crimson Protocol</span>
+</div>
+<div class="flex gap-8">
+<a class="text-gray-500 hover:text-white font-['Inter'] text-xs tracking-widest uppercase transition-colors" href="#">Security</a>
+<a class="text-gray-500 hover:text-white font-['Inter'] text-xs tracking-widest uppercase transition-colors" href="#">Terms</a>
+<a class="text-gray-500 hover:text-white font-['Inter'] text-xs tracking-widest uppercase transition-colors" href="#">Discord</a>
+</div>
+<div class="text-gray-500 font-['Inter'] text-xs tracking-widest uppercase">
+                © 2024 TaskStaker
+            </div>
+</div>
+</footer>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-primary/10 blur-[150px] rounded-full"></div>
+<div class="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full"></div>
+</div>
+</body></html>

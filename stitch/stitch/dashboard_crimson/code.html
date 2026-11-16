@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskStaker Pro | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#ffc5c5",
+                    "surface-container": "#1b1b1b",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#450000",
+                    "error-dim": "#ff3333",
+                    "outline-variant": "#444444",
+                    "surface": "#000000",
+                    "surface-container-high": "#222222",
+                    "primary-fixed": "#ff0000",
+                    "on-secondary-fixed-variant": "#c60000",
+                    "tertiary-fixed": "#ffffff",
+                    "inverse-primary": "#700000",
+                    "error": "#ff0000",
+                    "on-surface-variant": "#aaaaaa",
+                    "on-error-container": "#ffb2b2",
+                    "on-surface": "#ffffff",
+                    "primary-dim": "#ee0000",
+                    "tertiary-fixed-dim": "#dddddd",
+                    "tertiary-container": "#333333",
+                    "primary-container": "#ff0000",
+                    "on-primary-container": "#ffffff",
+                    "surface-tint": "#ff0000",
+                    "surface-container-highest": "#333333",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#000000",
+                    "secondary-dim": "#ff3333",
+                    "inverse-surface": "#ffffff",
+                    "on-secondary-fixed": "#860000",
+                    "surface-variant": "#1b1b1b",
+                    "on-secondary-container": "#ffffff",
+                    "surface-container-low": "#131313",
+                    "surface-bright": "#222222",
+                    "background": "#000000",
+                    "on-tertiary-fixed-variant": "#333333",
+                    "tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#ffb3b3",
+                    "secondary": "#ff4444",
+                    "surface-dim": "#000000",
+                    "on-primary-fixed-variant": "#650000",
+                    "error-container": "#380101",
+                    "on-background": "#ffffff",
+                    "on-tertiary-fixed": "#000000",
+                    "secondary-container": "#e50000",
+                    "on-tertiary-container": "#ffffff",
+                    "primary": "#ff0000",
+                    "on-error": "#ffffff",
+                    "outline": "#444444",
+                    "primary-fixed-dim": "#ee0000",
+                    "tertiary-dim": "#dddddd",
+                    "inverse-on-surface": "#1b1b1b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.75rem",
+                    "xl": "1rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #000000; color: #ffffff; font-family: 'Manrope', sans-serif; }
+        .glass-card {
+            background: rgba(27, 27, 27, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 0, 0.1);
+        }
+        .crimson-gradient {
+            background: linear-gradient(135deg, #ff0000 0%, #880000 100%);
+        }
+        .neon-border-red {
+            box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.05), 0 0 20px rgba(255, 0, 0, 0.1);
+        }
+        .glow-red {
+            filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden bg-black text-white">
+<!-- TopNavBar (Shared Component Inspired) -->
+<nav class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 shadow-[0_0_20px_rgba(255,0,0,0.1)] font-['Space_Grotesk'] tracking-tight">
+<div class="text-2xl font-black uppercase text-white">TaskStaker</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-gray-400 font-medium hover:text-red-400 transition-colors" href="#">Governance</a>
+<a class="text-gray-400 font-medium hover:text-red-400 transition-colors" href="#">Docs</a>
+<div class="flex gap-4 ml-4">
+<button class="p-2 text-gray-400 hover:bg-red-500/10 rounded-full transition-all duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-gray-400 hover:bg-red-500/10 rounded-full transition-all duration-300">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<button class="px-6 py-2.5 crimson-gradient rounded-lg text-white font-bold active:scale-95 duration-200">Connect Wallet</button>
+</div>
+<div class="bg-red-600/20 h-[1px] w-full absolute bottom-0"></div>
+</nav>
+<!-- SideNavBar (Shared Component Inspired) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#1B1B1B] border-r border-white/5 hidden md:flex flex-col pt-24 pb-8 z-40">
+<div class="px-6 mb-10 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-red-500/30">
+<img alt="User Identity" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD07yc7Yp3YoUfur5sNmMkef8rAmc9vnpfCo8bU5oSTRFvzpuCiVCrASu35pCMKpki4m6j1sp6UXJutaNAsenZ3d_kkjDB9qxwXIeheKQOukonb9opBJyHxSBWxY79IEcFc079OfWZtOT-ykHT7BUNhcgNwQRGlH0aaWQ5Xc6veQbW_tPSTM5nLHMpFHTfWn_HI71aD0MMmQE0ItVedbj8N7Jq4eSWI4Q02-fEPUMwNuJ64KZPgH3r8i9EHs-iXokRV-eESBftTxg"/>
+</div>
+<div>
+<div class="text-white font-headline text-sm font-bold">TaskStaker</div>
+<div class="text-red-500 text-[10px] font-label uppercase tracking-widest">Crimson Protocol</div>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 bg-red-500/10 text-red-500 border-r-4 border-red-500 p-4 font-['Space_Grotesk'] uppercase font-bold text-xs hover:bg-[#353535] transition-all active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+            Dashboard
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 font-['Space_Grotesk'] uppercase font-bold text-xs hover:bg-[#353535] transition-all hover:text-white active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">add_box</span>
+            Create Task
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 font-['Space_Grotesk'] uppercase font-bold text-xs hover:bg-[#353535] transition-all hover:text-white active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">verified</span>
+            Proof Hub
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 font-['Space_Grotesk'] uppercase font-bold text-xs hover:bg-[#353535] transition-all hover:text-white active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">gavel</span>
+            Validator
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 font-['Space_Grotesk'] uppercase font-bold text-xs hover:bg-[#353535] transition-all hover:text-white active:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+            Wallet
+        </a>
+</nav>
+<div class="px-6 mb-8">
+<button class="w-full py-4 rounded-lg crimson-gradient text-white font-headline font-bold text-xs uppercase tracking-wider active:scale-95 transition-all">
+            Stake Assets
+        </button>
+</div>
+<div class="border-t border-white/5 pt-4">
+<a class="flex items-center gap-3 text-white/60 p-4 font-['Space_Grotesk'] uppercase text-xs hover:bg-[#353535] transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+            Support
+        </a>
+<a class="flex items-center gap-3 text-white/60 p-4 font-['Space_Grotesk'] uppercase text-xs hover:bg-[#353535] transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+            Sign Out
+        </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-28 pb-12 px-6 md:px-10 min-h-screen">
+<header class="mb-10">
+<h1 class="text-4xl md:text-5xl font-headline font-bold text-white tracking-tighter mb-2">Crimson <span class="text-red-500">Overview</span></h1>
+<p class="text-gray-400 font-body">Deep scan protocol and active staking matrix.</p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Active Tasks Card (Large) -->
+<section class="md:col-span-8 glass-card rounded-xl p-8 neon-border-red relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8">
+<span class="material-symbols-outlined text-red-500/10 text-7xl opacity-30">rocket_launch</span>
+</div>
+<div class="flex justify-between items-center mb-8 relative z-10">
+<h2 class="font-headline text-xl font-bold tracking-tight text-white uppercase">Active Tasks</h2>
+<span class="text-xs font-label bg-red-500/10 text-red-500 px-3 py-1 rounded border border-red-500/20">12 SECURE</span>
+</div>
+<div class="space-y-6 relative z-10">
+<!-- Task Item 1 -->
+<div class="bg-black/40 p-5 rounded-lg border-l-4 border-red-600 group hover:bg-white/5 transition-all">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-white font-bold">Neural Network Training - Batch #42</h3>
+<p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Staked: 450.00 STK</p>
+</div>
+<span class="text-xs px-2 py-1 bg-white/5 text-gray-300 rounded font-bold border border-white/10 uppercase">Pending</span>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-red-600" style="width: 78%"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] font-label text-gray-600">
+<span>PROGRESS: 78%</span>
+<span>ETA: 2h 14m</span>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="bg-black/40 p-5 rounded-lg border-l-4 border-red-900 group hover:bg-white/5 transition-all">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-white font-bold">Sentiment Analysis Protocol Beta</h3>
+<p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Staked: 1,200.00 STK</p>
+</div>
+<span class="text-xs px-2 py-1 bg-red-600/10 text-red-500 rounded font-bold border border-red-600/20 uppercase">Scanning</span>
+</div>
+<div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-red-800" style="width: 42%"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] font-label text-gray-600">
+<span>PROGRESS: 42%</span>
+<span>ETA: 5h 30m</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Side Cards -->
+<div class="md:col-span-4 grid grid-cols-1 gap-6">
+<!-- Total Staked -->
+<div class="glass-card rounded-xl p-6 neon-border-red bg-gradient-to-br from-[#1b1b1b] to-black">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-red-600/10 rounded-lg text-red-500">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<h2 class="font-headline text-sm font-bold text-gray-400 uppercase">Total Staked</h2>
+</div>
+<div class="text-3xl font-headline font-bold text-white mb-2">18,540.22 <span class="text-red-500 text-sm">STK</span></div>
+<div class="text-red-500 text-xs font-label flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                    +12.4% INCREASE
+                </div>
+</div>
+<!-- Earnings -->
+<div class="glass-card rounded-xl p-6 neon-border-red bg-gradient-to-br from-[#1b1b1b] to-black">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-red-600/10 rounded-lg text-red-500">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<h2 class="font-headline text-sm font-bold text-gray-400 uppercase">Total Earnings</h2>
+</div>
+<div class="text-3xl font-headline font-bold text-white mb-2">$2,441.80 <span class="text-red-500 text-sm">USD</span></div>
+<div class="text-gray-500 text-xs font-label flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                    Ready to harvest
+                </div>
+</div>
+</div>
+<!-- AI Assistant Widget -->
+<section class="md:col-span-4 glass-card rounded-xl p-6 flex flex-col items-center justify-center text-center gap-4 border border-red-900/40">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-2 border-red-500/20 p-2">
+<div class="w-full h-full rounded-full crimson-gradient animate-pulse shadow-[0_0_20px_rgba(255,0,0,0.4)]"></div>
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 bg-black rounded-full border border-red-500 flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-red-500" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline font-bold text-white">Protocol AI</h3>
+<p class="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Scanning for Proofs</p>
+</div>
+<div class="w-full bg-black/60 p-3 rounded border border-white/5 text-[10px] text-left font-mono text-red-500/80">
+                &gt; CRIMSON_SCAN_0x9A...<br/>
+                &gt; BLOCK_VALIDATED: TRUE<br/>
+                &gt; HEAT_MAP: NORMAL
+            </div>
+</section>
+<!-- Recent Activity Card -->
+<section class="md:col-span-8 glass-card rounded-xl p-8 neon-border-red">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline text-xl font-bold text-white uppercase">Recent Activity</h2>
+<button class="text-[10px] text-red-500 font-label hover:underline tracking-widest uppercase">View History</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] font-label text-gray-600 border-b border-white/5 uppercase tracking-widest">
+<th class="pb-4 font-normal">Task Type</th>
+<th class="pb-4 font-normal">Date</th>
+<th class="pb-4 font-normal">Reward</th>
+<th class="pb-4 font-normal">Status</th>
+</tr>
+</thead>
+<tbody class="text-sm font-body">
+<tr class="border-b border-white/5">
+<td class="py-4 text-white font-medium">Dataset Curation</td>
+<td class="py-4 text-gray-500">Oct 24, 2024</td>
+<td class="py-4 text-red-500 font-bold">+14.2 STK</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded bg-white/5 text-white border border-white/10 uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600 glow-red"></span>
+                                    Verified
+                                </span>
+</td>
+</tr>
+<tr class="border-b border-white/5">
+<td class="py-4 text-white font-medium">Model Validation</td>
+<td class="py-4 text-gray-500">Oct 23, 2024</td>
+<td class="py-4 text-red-500 font-bold">+8.5 STK</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded bg-white/5 text-white border border-white/10 uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600 glow-red"></span>
+                                    Verified
+                                </span>
+</td>
+</tr>
+<tr>
+<td class="py-4 text-white font-medium opacity-50">Image Tagging V2</td>
+<td class="py-4 text-gray-600">Oct 22, 2024</td>
+<td class="py-4 text-gray-500 font-bold">-0.5 STK</td>
+<td class="py-4">
+<span class="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded bg-red-600/10 text-red-500 border border-red-600/20 uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                    Failed
+                                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer (Shared Component Inspired) -->
+<footer class="w-full py-6 mt-auto bg-[#131313] border-t border-[#353535]">
+<div class="flex justify-between items-center px-12 w-full ml-0 md:ml-64">
+<div class="text-white font-bold text-xs uppercase tracking-widest">© 2024 TaskStaker | Crimson Protocol</div>
+<div class="flex gap-8 font-['Inter'] text-xs tracking-widest uppercase">
+<a class="text-gray-500 hover:text-white transition-all opacity-80 hover:opacity-100" href="#">Security</a>
+<a class="text-gray-500 hover:text-white transition-all opacity-80 hover:opacity-100" href="#">Terms</a>
+<a class="text-red-500 hover:text-red-400 transition-all opacity-80 hover:opacity-100" href="#">Discord</a>
+</div>
+</div>
+</footer>
+<!-- Mobile Nav Bar (Visible only on small screens) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-black border-t border-white/10 flex justify-around items-center z-50">
+<a class="flex flex-col items-center gap-1 text-red-500" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-label font-bold">HOME</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-500" href="#">
+<span class="material-symbols-outlined">add_box</span>
+<span class="text-[10px] font-label font-bold">CREATE</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-500" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-label font-bold">WALLET</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label font-bold">ME</span>
+</a>
+</nav>
+</body></html>
