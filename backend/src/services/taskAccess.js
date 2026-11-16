@@ -1,5 +1,6 @@
 const { ethers } = require('ethers');
 const supabase = require('./supabase');
+const { verifiedAddress } = require('./walletLinkProof');
 const { getEmbeddedWallet } = require('./embeddedWallet');
 
 // An assignment belongs to accounts, not to whichever wallet is connected in
@@ -26,7 +27,10 @@ async function accountContext(clerkId) {
   const { data: user, error } = await supabase.from('users')
     .select('id, wallet_address').eq('clerk_id', clerkId).single();
   if (error || !user) throw Object.assign(new Error('User not registered'), { status: 404 });
-  return { user, embeddedAddress: getEmbeddedWallet(clerkId).address };
+  // Old saved addresses are unverified. Never infer legacy task ownership from
+  // them until this account has proved control of that exact wallet.
+  return { user: { ...user, wallet_address: verifiedAddress(clerkId, user.wallet_address) },
+    embeddedAddress: getEmbeddedWallet(clerkId).address };
 }
 
 async function requireTaskAccess(clerkId, taskId, ownerOnly = false) {

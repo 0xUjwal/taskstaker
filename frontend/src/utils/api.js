@@ -1,11 +1,25 @@
 import { signer } from './web3';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+function walletProofKey(token) {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return `ts_verified_wallet:${JSON.parse(atob(payload)).sub}`;
+  } catch { return null; }
+}
+
 async function fetchApi(path, options = {}) {
+  let walletProof;
+  try {
+    const token = options.headers?.Authorization?.replace(/^Bearer /, '');
+    const key = token && walletProofKey(token);
+    walletProof = key && localStorage.getItem(key);
+  } catch {}
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       ...options.headers,
+      ...(walletProof ? { 'X-TaskStaker-Wallet-Proof': walletProof } : {}),
       ...(options.body && !(options.body instanceof FormData)
         ? { "Content-Type": "application/json" }
         : {}),
@@ -38,11 +52,16 @@ export async function linkWallet(token, walletAddress) {
     headers: authHeaders(token),
   });
   const signature = await signer.signMessage(challenge.message);
-  return fetchApi('/api/users/link-wallet', {
+  const result = await fetchApi('/api/users/link-wallet', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify({ walletAddress, signature, challengeId: challenge.challengeId }),
   });
+  try {
+    const key = walletProofKey(token);
+    if (key && result.walletProof) localStorage.setItem(key, result.walletProof);
+  } catch {}
+  return result;
 }
 
 export const resolveUser = (username) =>

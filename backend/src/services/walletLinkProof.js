@@ -24,3 +24,37 @@ function verifyChallenge(clerkId, address, challengeId, signature, now = Date.no
   return true;
 }
 module.exports = { createChallenge, verifyChallenge };
+
+// A signed account-bound receipt lets a verified link survive backend restarts
+// without trusting the old database address field or requiring a schema change.
+const verifiedLinks = new Map();
+function proofKey() {
+  if (!process.env.WALLET_MASTER_SECRET) throw new Error('Wallet proof signing is not configured');
+  return process.env.WALLET_MASTER_SECRET;
+}
+function createWalletProof(clerkId, address, now = Date.now()) {
+  const item = { clerkId, address: address.toLowerCase(), expiresAt: now + 30 * 24 * 60 * 60 * 1000 };
+  const payload = Buffer.from(JSON.stringify(item)).toString('base64url');
+  const mac = require('node:crypto').createHmac('sha256', proofKey()).update(payload).digest('base64url');
+  verifiedLinks.set(clerkId, item);
+  return `${payload}.${mac}`;
+}
+function restoreWalletProof(clerkId, proof, now = Date.now()) {
+  try {
+    if (typeof proof !== 'string' || proof.length > 4096) return false;
+    const parts = proof.split('.'); if (parts.length !== 2) return false;
+    const [payload, signature] = parts;
+    const expected = require('node:crypto').createHmac('sha256', proofKey()).update(payload).digest();
+    const actual = Buffer.from(signature, 'base64url');
+    if (actual.length !== expected.length || !require('node:crypto').timingSafeEqual(actual, expected)) return false;
+    const item = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (item.clerkId !== clerkId || !ethers.utils.isAddress(item.address) || !Number.isFinite(item.expiresAt) || item.expiresAt <= now) return false;
+    verifiedLinks.set(clerkId, item);
+    return true;
+  } catch { return false; }
+}
+function verifiedAddress(clerkId, savedAddress, now = Date.now()) {
+  const item = verifiedLinks.get(clerkId);
+  return item && item.expiresAt > now && item.address === savedAddress?.toLowerCase() ? item.address : null;
+}
+module.exports = { createChallenge, verifyChallenge, createWalletProof, restoreWalletProof, verifiedAddress };

@@ -2,7 +2,7 @@ const express = require("express");
 const { requireAuthentication, getUserId } = require("../middleware/auth");
 const supabase = require("../services/supabase");
 
-const { createChallenge, verifyChallenge } = require('../services/walletLinkProof');
+const { createChallenge, verifyChallenge, createWalletProof } = require('../services/walletLinkProof');
 const router = express.Router();
 
 // Register username after Clerk login
@@ -97,7 +97,8 @@ router.post("/link-wallet", requireAuthentication, async (req, res) => {
     if (error) throw error;
     if (!data) return res.status(404).json({ error: "User not found. Register first." });
 
-    res.json({ user: data });
+    const walletProof = createWalletProof(clerkId, walletAddress);
+    res.json({ user: data, walletProof });
   } catch (err) {
     console.error("Link wallet error:", err);
     res.status(500).json({ error: "Failed to link wallet" });

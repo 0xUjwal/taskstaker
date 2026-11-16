@@ -52,14 +52,10 @@ export default function Dashboard({
 
       const { userAddress } = await initWeb3(contractAddress);
 
-      // Link wallet if changed
-      if (
-        !userProfile?.wallet_address ||
-        userProfile.wallet_address !== userAddress.toLowerCase()
-      ) {
-        const token = await getToken();
-        await linkWallet(token, userAddress);
-      }
+      // Connecting proves control even when this address was saved before
+      // account-isolation checks were added.
+      const token = await getToken();
+      await linkWallet(token, userAddress);
 
       const net = await getNetwork();
       setNetwork(net);

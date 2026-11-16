@@ -1,3 +1,4 @@
+import { linkWallet } from '../utils/api';
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { getEmbeddedWalletInfo, getWalletBalances } from "../utils/api";
@@ -132,6 +133,8 @@ export default function WalletPanel({
       const { userAddress } = await initWeb3(
         import.meta.env.VITE_CONTRACT_ADDRESS,
       );
+      const token = await getToken();
+      await linkWallet(token, userAddress);
       const summary = await getWalletSummary();
       const walletData = {
         address: userAddress,
