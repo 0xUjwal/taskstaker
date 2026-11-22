@@ -138,8 +138,9 @@ function AccountApp({ page }) {
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full crimson-gradient animate-pulse shadow-[0_0_20px_rgba(255,59,48,0.4)]" />
           <span className="text-on-surface-variant text-sm font-label uppercase tracking-widest">
-            Loading...
+            Connecting to your account...
           </span>
+          <p className="text-sm text-on-surface-variant text-center px-6 max-w-sm">The server may take a moment to wake up. Your account will load automatically.</p>
         </div>
       </div>
     );

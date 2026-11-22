@@ -1,0 +1,15 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+process.env.SUPABASE_URL='https://example.supabase.co';process.env.SUPABASE_SERVICE_KEY='test-key';process.env.RELAYER_ADDRESS='0xrelayer';process.env.CONTRACT_ADDRESS='0xcontract';
+const {ethers}=require('ethers');const db=require('../src/services/supabase');const wallets=require('../src/services/embeddedWallet');const access=require('../src/services/taskAccess');
+const owner={id:'owner-id',username:'test_owner'};const validator={id:'validator-id',username:'test_reviewer'};const rows=[];
+const allowed=new Set(['task_id','validator_user_id','owner_user_id','task_name','owner_username','validator_username']);
+let resolveSaved;const saved=new Promise(r=>resolveSaved=r);
+db.from=table=>{let user=owner;const q={select:()=>q,eq:()=>q,or:()=>{user=validator;return q;},single:async()=>({data:user,error:null}),upsert:async row=>{for(const key of Object.keys(row))assert.ok(allowed.has(key),`Column ${key} is absent from the deployed schema`);rows.push(row);resolveSaved();return {error:null};},insert:async()=>({error:null})};return q;};
+wallets.getEmbeddedWalletWithProvider=()=>({getBalance:async()=>ethers.utils.parseEther('1')});
+Object.defineProperty(ethers,'Contract',{value:class {constructor(){this.estimateGas={createTask:async()=>ethers.BigNumber.from(610000)};}async createTask(){return {hash:'0xtest',wait:async()=>({events:[{event:'TaskCreated',args:{taskId:ethers.BigNumber.from(55)}}]})};}}});
+access.requireTaskAccess=async()=>({isOwner:true});
+const express=require('express');const app=express();app.use(express.json());app.use((req,res,next)=>{req.auth={userId:'clerk-owner'};next();});app.use('/api/wallet',require('../src/routes/wallet'));app.use('/api/tasks',require('../src/routes/tasks'));
+let server,base;test.before(async()=>{server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base=`http://127.0.0.1:${server.address().port}`;});test.after(async()=>{await new Promise(r=>server.close(r));});
+const post=async(path,body)=>fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+test('embedded creation persists the separate reviewer using only real schema columns',async()=>{const r=await post('/api/wallet/create-task',{taskName:'TEST assignment',hours:24,stakeEth:'0.001',validatorUsername:'test_reviewer'});assert.equal(r.status,200);await saved;assert.equal(rows[0].validator_user_id,validator.id);assert.equal(rows[0].owner_user_id,owner.id);assert.equal(rows[0].task_id,55);assert.equal('stake_eth' in rows[0],false);});
+test('external-wallet assignment also honors the deployed schema',async()=>{const r=await post('/api/tasks/assign-validator',{taskId:56,taskName:'TEST assignment',stakeEth:'0.001',validatorUsername:'test_reviewer'});assert.equal(r.status,200);assert.equal(rows[1].task_id,56);assert.equal(rows[1].validator_user_id,validator.id);});

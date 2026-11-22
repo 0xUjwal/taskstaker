@@ -124,7 +124,6 @@ router.post("/assign-validator", requireAuthentication, async (req, res) => {
         task_name: taskName || "",
         owner_username: owner.username,
         validator_username: validator.username,
-        ...(stakeEth ? { stake_eth: stakeEth.toString() } : {}),
       },
       { onConflict: "task_id" },
     );
