@@ -317,10 +317,14 @@ router.post("/submit-proof", requireAuthentication, async (req, res) => {
           abi,
           embeddedWallet,
         );
+        const proofGas = await embeddedContract.estimateGas
+          .submitProof(Number(taskId), proofUrl)
+          .then((g) => g.mul(120).div(100))
+          .catch(() => ethers.BigNumber.from(400000));
         const tx = await embeddedContract.submitProof(
           Number(taskId),
           proofUrl,
-          { gasLimit: 300000 },
+          { gasLimit: proofGas },
         );
         tx.wait().catch((err) =>
           console.error(`Embedded submitProof failed [${tx.hash}]:`, err.message),

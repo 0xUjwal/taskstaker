@@ -228,9 +228,15 @@ router.post("/create-task", requireAuthentication, async (req, res) => {
     const abi = require("../../abi/TaskStakerV2.json").abi;
     const contract = new ethers.Contract(contractAddress, abi, wallet);
 
+    // Estimate gas at runtime with a 20% buffer; fall back to a safe ceiling.
+    // (Hardcoded 250000 was below the ~607k createTask actually needs -> OOG reverts.)
+    const createTaskGas = await contract.estimateGas
+      .createTask(taskName, hoursNum, relayerAddress, { value: stakeWei })
+      .then((g) => g.mul(120).div(100))
+      .catch(() => ethers.BigNumber.from(800000));
     const tx = await contract.createTask(taskName, hoursNum, relayerAddress, {
       value: stakeWei,
-      gasLimit: 250000,
+      gasLimit: createTaskGas,
     });
 
     // Respond immediately with txHash (optimistic)
@@ -319,7 +325,11 @@ router.post("/claim", requireAuthentication, async (req, res) => {
     }
 
     const contract = new ethers.Contract(contractAddress, abi, wallet);
-    const tx = await contract.claimFunds(Number(taskId), { gasLimit: 100000 });
+    const claimGas = await contract.estimateGas
+      .claimFunds(Number(taskId))
+      .then((g) => g.mul(120).div(100))
+      .catch(() => ethers.BigNumber.from(300000));
+    const tx = await contract.claimFunds(Number(taskId), { gasLimit: claimGas });
 
     res.json({ success: true, txHash: tx.hash, status: "pending" });
 

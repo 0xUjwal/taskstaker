@@ -37,7 +37,11 @@ function getRelayerContract() {
 
 async function relaySubmitProof(taskId, proofUrl) {
   const c = getRelayerContract();
-  const tx = await c.submitProof(taskId, proofUrl, { gasLimit: 200000 });
+  const proofGas = await c.estimateGas
+    .submitProof(taskId, proofUrl)
+    .then((g) => g.mul(120).div(100))
+    .catch(() => ethers.BigNumber.from(400000));
+  const tx = await c.submitProof(taskId, proofUrl, { gasLimit: proofGas });
   // Fire-and-forget — don't block HTTP response on block confirmation
   tx.wait().catch((err) =>
     console.error(`submitProof tx failed [${tx.hash}]:`, err.message),
@@ -47,7 +51,11 @@ async function relaySubmitProof(taskId, proofUrl) {
 
 async function relayValidateTask(taskId) {
   const c = getRelayerContract();
-  const tx = await c.validateTask(taskId, { gasLimit: 100000 });
+  const valGas = await c.estimateGas
+    .validateTask(taskId)
+    .then((g) => g.mul(120).div(100))
+    .catch(() => ethers.BigNumber.from(300000));
+  const tx = await c.validateTask(taskId, { gasLimit: valGas });
   // Fire-and-forget
   tx.wait().catch((err) =>
     console.error(`validateTask tx failed [${tx.hash}]:`, err.message),
