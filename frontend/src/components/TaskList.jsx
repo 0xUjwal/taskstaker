@@ -510,6 +510,9 @@ export default function TaskList({
 
                   {/* Validator / owner info */}
                   <div className="flex gap-4 text-[11px] font-label flex-wrap">
+                    {assignment?.ownerUserId && assignment.ownerUserId === assignment.validatorUserId && (
+                      <p className="text-xs text-warning mt-2">Historical self-assignment. New tasks require a different reviewer.</p>
+                    )}
                     {validatorUsername && (
                       <span className="text-on-surface-variant">
                         Validator:{" "}
@@ -610,7 +613,8 @@ export default function TaskList({
                             <input
                               type="file"
                               id={`file-${task.id}`}
-                              className="hidden"
+                              className="sr-only"
+                              aria-label={`Upload proof for task ${task.id}`}
                               onChange={(e) =>
                                 handleUploadProof(task, e.target.files[0])
                               }
