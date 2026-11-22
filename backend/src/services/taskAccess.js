@@ -11,9 +11,9 @@ function taskRoles(task, assignment, user, embeddedAddress, relayerAddress) {
   const isOwner = assignment?.owner_user_id
     ? assignment.owner_user_id === user.id
     : wallets.has(task.user.toLowerCase());
-  const isValidator = assignment
+  const isValidator = !isOwner && (assignment
     ? assignment.validator_user_id === user.id
-    : isLegacyTask && wallets.has(task.validator.toLowerCase());
+    : isLegacyTask && wallets.has(task.validator.toLowerCase()));
   return { isOwner, isValidator, isLegacyTask, isLegacyValidator: !assignment && isValidator };
 }
 

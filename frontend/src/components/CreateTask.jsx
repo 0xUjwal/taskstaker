@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { contract, parseEther } from "../utils/web3";
+import { contract, parseEther, getReadOnlyContract } from "../utils/web3";
 import {
   resolveUser,
   getEthPrice,
@@ -75,7 +75,8 @@ export default function CreateTask({
     setValidatorError("");
     setValidatorResolved(null);
     try {
-      const data = await resolveUser(validatorInput.trim());
+      const data = await resolveUser(validatorInput.trim().replace(/^@/, ""));
+      if (data.username.toLowerCase() === userProfile.username.toLowerCase() || (data.uniqueId != null && userProfile.unique_id != null && String(data.uniqueId) === String(userProfile.unique_id))) throw new Error("Choose someone else. You cannot validate your own task.");
       // Note: walletAddress may be null — validators don't need wallets
       setValidatorResolved(data);
     } catch (err) {
@@ -102,7 +103,7 @@ export default function CreateTask({
       return;
     }
 
-    if (!validatorResolved) {
+    if (!validatorResolved || validatorResolved.username.toLowerCase() === userProfile.username.toLowerCase()) {
       setError("Please enter and verify a validator username");
       return;
     }
@@ -143,6 +144,7 @@ export default function CreateTask({
         });
 
         setSuccess({
+          validatorUsername: taskValidator,
           taskId: "pending",
           name: taskName,
           hours: hoursNum,
@@ -174,6 +176,7 @@ export default function CreateTask({
       });
 
       setSuccess({
+        validatorUsername: taskValidator,
         taskId: "pending",
         name: taskName,
         hours: hoursNum,
@@ -241,11 +244,21 @@ export default function CreateTask({
     setValidatorResolved(null);
   }
 
-  function pollForConfirmation(txHash, taskName) {
-    // Just clear the confirming state after ~20s (embedded wallet confirms async on server)
-    setTimeout(() => {
-      setSuccess((prev) => (prev ? { ...prev, confirming: false } : prev));
-    }, 20000);
+  async function pollForConfirmation(txHash) {
+    try {
+      const reader = getReadOnlyContract();
+      if (!reader) throw new Error("Confirmation unavailable");
+      const receipt = await reader.provider.waitForTransaction(txHash, 1, 180000);
+      if (!receipt || receipt.status !== 1) {
+        setSuccess(prev => prev?.txHash === txHash ? { ...prev, confirming: false, failed: receipt?.status === 0, unknown: !receipt } : prev);
+        return;
+      }
+      const event = receipt.logs.map(log => { try { return reader.interface.parseLog(log); } catch { return null; } }).find(event => event?.name === "TaskCreated");
+      setSuccess(prev => prev?.txHash === txHash ? { ...prev, taskId: event?.args?.taskId?.toString(), confirming: false, unknown: !event } : prev);
+      onTaskCreated?.();
+    } catch {
+      setSuccess(prev => prev?.txHash === txHash ? { ...prev, confirming: false, unknown: true } : prev);
+    }
   }
 
   if (success) {
@@ -260,7 +273,7 @@ export default function CreateTask({
                 Confirming on chain…
               </h3>
             </>
-          ) : success.failed ? (
+          ) : success.unknown ? (<h3 className="font-bold text-warning">Confirmation not yet verified. Check My activity before retrying.</h3>) : success.failed ? (
             <>
               <span
                 className="material-symbols-outlined text-error"
@@ -289,7 +302,7 @@ export default function CreateTask({
         <div className="text-sm text-on-surface-variant space-y-1">
           <p>
             <span className="text-on-surface">
-              {success.confirming ? "Task #pending" : `Task #${success.taskId}`}
+              {success.confirming || !success.taskId ? "Task awaiting confirmation" : `Task #${success.taskId}`}
               :
             </span>{" "}
             {success.name}
@@ -312,7 +325,7 @@ export default function CreateTask({
           <p>
             Validator:{" "}
             <span className="text-on-surface">
-              @{validatorInput || "assigned"}
+              @{success.validatorUsername}
             </span>
           </p>
           {success.txHash && (
@@ -336,7 +349,7 @@ export default function CreateTask({
   return (
     <form
       onSubmit={handleSubmit}
-      className="glass-card p-6 space-y-5 relative overflow-hidden"
+      className="glass-card p-4 sm:p-6 space-y-5 relative overflow-clip"
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
@@ -351,7 +364,7 @@ export default function CreateTask({
         {/* Task Name */}
         <div className="space-y-1.5">
           <label className="block font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-            Task Identity
+            Task name
           </label>
           <input
             type="text"
@@ -366,7 +379,7 @@ export default function CreateTask({
         {/* Deadline */}
         <div className="space-y-1.5">
           <label className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant flex items-center gap-2">
-            Resolution Deadline (hours)
+            Deadline (hours)
             <span className="relative group">
               <span className="material-symbols-outlined text-error text-sm cursor-help">
                 info
@@ -392,7 +405,7 @@ export default function CreateTask({
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-              Staking Allocation
+              Stake amount
             </label>
             {ethPrice && (
               <span className="text-white/60 text-[10px] font-label">
@@ -536,8 +549,8 @@ export default function CreateTask({
             </span>
           </label>
           <p className="text-[10px] text-on-surface-variant/70 font-label">
-            Validators don't need a wallet — anyone with a TaskStaker account
-            can validate
+            Choose someone you know and trust to review your proof honestly.
+            You cannot validate your own task. They only need a TaskStaker account, not a wallet.
           </p>
           <div className="flex gap-2">
             <input
@@ -548,7 +561,7 @@ export default function CreateTask({
                 setValidatorResolved(null);
                 setValidatorError("");
               }}
-              className="flex-1 glass-input p-3.5 font-body text-sm"
+              className="flex-1 min-w-0 glass-input p-3.5 font-body text-sm"
               placeholder="@username or 12345"
               required
             />
@@ -608,8 +621,8 @@ export default function CreateTask({
                 bolt
               </span>
               {walletMode === "embedded"
-                ? "Stake & Deploy (No MetaMask)"
-                : "Stake & Deploy via MetaMask"}
+                ? "Create staked task"
+                : "Create with MetaMask"}
             </>
           )}
         </button>

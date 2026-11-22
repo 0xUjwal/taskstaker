@@ -11,23 +11,14 @@ router.post("/register", requireAuthentication, async (req, res) => {
     const clerkId = getUserId(req);
     const { username } = req.body;
 
-    if (!username || username.length < 3 || username.length > 20) {
-      return res.status(400).json({ error: "Username must be 3-20 characters" });
-    }
+    // Repeated setup requests are safe and never rename an existing account.
+    const { data: existing, error: lookupError } = await supabase.from("users")
+      .select("*").eq("clerk_id", clerkId).maybeSingle();
+    if (lookupError) throw lookupError;
+    if (existing) return res.json({ user: existing, existing: true });
 
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: "Username can only contain letters, numbers, and underscores" });
-    }
-
-    // Check if user already registered
-    const { data: existing } = await supabase
-      .from("users")
-      .select("id")
-      .eq("clerk_id", clerkId)
-      .single();
-
-    if (existing) {
-      return res.status(400).json({ error: "User already registered" });
+    if (!username || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      return res.status(400).json({ error: "Username must be 3-20 letters, numbers or underscores" });
     }
 
     // Check username uniqueness
@@ -132,25 +123,18 @@ router.get("/resolve/:username", async (req, res) => {
   }
 });
 
-// Get current user profile
+// Get current user profile. Only a successful empty lookup means setup is needed.
 router.get("/me", requireAuthentication, async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
   try {
-    const clerkId = getUserId(req);
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("clerk_id", clerkId)
-      .single();
-
-    if (error || !data) {
-      return res.status(404).json({ error: "User not registered" });
-    }
-
+    const { data, error } = await supabase.from("users").select("*")
+      .eq("clerk_id", getUserId(req)).maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: "User not registered", code: "PROFILE_NOT_FOUND" });
     res.json({ user: data });
   } catch (err) {
-    console.error("Get me error:", err);
-    res.status(500).json({ error: "Failed to get user" });
+    console.error("Get me error:", err.message);
+    res.status(503).json({ error: "Unable to load your profile. Please retry.", code: "PROFILE_UNAVAILABLE" });
   }
 });
 

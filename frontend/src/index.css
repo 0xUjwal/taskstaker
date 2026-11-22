@@ -262,3 +262,20 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Mobile comfort: safe areas, readable forms, keyboard focus and roomy taps. */
+:focus-visible { outline: 2px solid #FF6B5E; outline-offset: 3px; }
+.mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (max-width: 639px) {
+  input, select, textarea { font-size: 16px !important; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  header button { min-width: 44px; min-height: 44px; }
+  .notification-popover { position: fixed; top: 64px; left: 12px; right: 12px; width: auto; max-height: calc(100dvh - 160px); }
+  .glass-card { border-radius: 1.25rem; }
+  .aurora-orb { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+.material-symbols-outlined { display: inline-block; width: 1em; flex-shrink: 0; overflow: hidden; vertical-align: middle; }

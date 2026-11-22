@@ -47,7 +47,7 @@ export default function Landing() {
 
             {/* Subtitle */}
             <p className="text-lg md:text-2xl text-on-surface-variant max-w-2xl mx-auto font-light leading-relaxed">
-              The Decentralized AI-Powered Accountability Engine. Lock value, complete tasks, and let AI verify your success.
+              Stake Sepolia test ETH on a goal. Submit proof, then ask someone you trust to review it. AI advises. Your validator decides.
             </p>
 
             {/* CTAs */}
@@ -126,13 +126,13 @@ export default function Landing() {
         <section className="py-24 md:py-32 px-6 max-w-7xl mx-auto">
           <div className="text-center mb-16 md:mb-24 space-y-4">
             <h2 className="text-3xl md:text-6xl font-headline font-bold tracking-tight">How It Works</h2>
-            <p className="text-on-surface-variant text-lg">The four pillars of algorithmic accountability.</p>
+            <p className="text-on-surface-variant text-lg">Real commitments. Independent human review.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: "account_balance_wallet", title: "Stake (ETH/USDC)", desc: "Commit Sepolia ETH as proof of intent. It is locked in the TaskStakerV2 smart contract until you deliver.", step: "01", color: "primary" },
+              { icon: "account_balance_wallet", title: "Stake test ETH", desc: "Commit Sepolia ETH as proof of intent. It is locked in the TaskStakerV2 smart contract until you deliver.", step: "01", color: "primary" },
               { icon: "upload_file", title: "Submit Proof", desc: "Upload screenshots, GitHub commits, or data logs as evidence of your task completion.", step: "02", color: "secondary" },
-              { icon: "psychology", title: "AI Validation", desc: "A human validator reviews your proof, backed by an AI analysis that reads the evidence and gives a pass/fail recommendation.", step: "03", color: "primary-dim" },
+              { icon: "psychology", title: "Human Validation", desc: "A human validator reviews your proof, backed by an AI analysis that reads the evidence and gives a pass/fail recommendation.", step: "03", color: "primary-dim" },
               { icon: "workspace_premium", title: "Claim Reward", desc: "Get your full stake back on-chain the moment your validator approves. Miss the deadline and the stake is forfeited.", step: "04", color: "tertiary" },
             ].map((item, i) => (
               <div key={i} className="glass-card glass-card-hover p-8 flex flex-col justify-between group min-h-[280px]">
@@ -192,7 +192,7 @@ export default function Landing() {
                 </div>
               </div>
               <div className="w-full md:w-1/2 space-y-8">
-                <h2 className="text-3xl md:text-5xl font-headline font-bold leading-tight">AI Powered Verification</h2>
+                <h2 className="text-3xl md:text-5xl font-headline font-bold leading-tight">AI Helps. Humans Decide.</h2>
                 <p className="text-lg text-on-surface-variant leading-relaxed">
                   Every proof gets an AI second opinion. The chatbot reads the task description and the proof file, then gives your validator a structured recommendation — context-aware, not just a keyword match.
                 </p>

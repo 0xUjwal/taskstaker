@@ -172,7 +172,7 @@ export default function WalletPanel({
       />
 
       {/* Panel — right-side drawer */}
-      <div className="fixed top-0 right-0 h-full w-80 glass-strong border-l border-white/10 z-[80] flex flex-col overflow-hidden">
+      <div className="fixed top-0 right-0 h-[100dvh] w-full sm:w-96 max-w-full glass-strong border-l border-white/10 z-[80] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <div className="flex items-center gap-2.5">

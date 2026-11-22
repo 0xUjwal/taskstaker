@@ -20,6 +20,7 @@ export default function Dashboard({
   walletState,
 }) {
   const { getToken } = useAuth();
+  const [mobileView, setMobileView] = useState("tasks");
   const [walletReady, setWalletReady] = useState(false);
   const [taskCreateTick, setTaskCreateTick] = useState(0);
 
@@ -116,23 +117,30 @@ export default function Dashboard({
         </div>
       )}
 
+      <div className="lg:hidden space-y-4">
+        <div><p className="text-xs text-primary font-label">SEPOLIA TESTNET</p><h1 className="text-2xl font-headline font-bold mt-1">Your commitments</h1><p className="text-sm text-on-surface-variant mt-1">Set a goal. Ask someone you trust to review it.</p></div>
+        <div className="grid grid-cols-2 gap-2 glass-card p-1" role="tablist" aria-label="Task views">
+          <button role="tab" aria-selected={mobileView === "tasks"} onClick={() => setMobileView("tasks")} className={`rounded-xl py-3 text-sm font-bold ${mobileView === "tasks" ? "bg-white/10 text-white" : "text-on-surface-variant"}`}>My activity</button>
+          <button role="tab" aria-selected={mobileView === "create"} onClick={() => setMobileView("create")} className={`rounded-xl py-3 text-sm font-bold ${mobileView === "create" ? "btn-primary" : "text-on-surface-variant"}`}>+ New task</button>
+        </div>
+      </div>
       {/* Side-by-side on md+ screens */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-        <CreateTask
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        <div className={mobileView === "create" ? "min-w-0" : "hidden lg:block min-w-0"}><CreateTask
           userProfile={userProfile}
           walletReady={walletReady}
           walletLoading={walletLoading}
           walletError={walletError}
           onConnectWallet={connectWallet}
-          onTaskCreated={() => setTaskCreateTick((t) => t + 1)}
-        />
-        <TaskList
+          onTaskCreated={() => { setTaskCreateTick((t) => t + 1); }}
+        /></div>
+        <div className={mobileView === "tasks" ? "min-w-0" : "hidden lg:block min-w-0"}><TaskList
           userProfile={userProfile}
           walletReady={walletReady}
           onTaskClaimed={onProfileRefresh}
           onDerivedCompletedTasks={onDerivedCompletedTasks}
           taskCreateTick={taskCreateTick}
-        />
+        /></div>
       </div>
     </div>
   );

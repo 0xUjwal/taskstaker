@@ -32,7 +32,7 @@ export default function NotificationBell({ userId }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button
+      <button aria-label="Notifications" aria-expanded={open}
         onClick={() => setOpen(!open)}
         className="relative p-2 hover:bg-surface-variant/50 rounded-lg transition-colors"
       >
@@ -45,7 +45,7 @@ export default function NotificationBell({ userId }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 glass-strong rounded-xl z-50 max-h-96 overflow-hidden flex flex-col animate-fade-up">
+        <div className="notification-popover absolute right-0 top-full mt-2 w-80 glass-strong rounded-xl z-50 max-h-96 overflow-hidden flex flex-col animate-fade-up">
           <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/10">
             <h3 className="font-headline font-bold text-sm text-on-surface">Notifications</h3>
             {unreadCount > 0 && (

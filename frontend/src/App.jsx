@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignOutButton, useUser } from "@clerk/clerk-react";
 import Landing from "./components/Landing";
 import Dashboard from "./components/Dashboard";
 import Leaderboard from "./components/Leaderboard";
@@ -9,6 +9,7 @@ import UsernameSetup from "./components/UsernameSetup";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { getMe } from "./utils/api";
+import { loadAccountProfile } from "./utils/profileLoading.mjs";
 import { disconnectWallet } from "./utils/web3";
 
 function App() {
@@ -69,6 +70,8 @@ function AccountApp({ page }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [retryTick, setRetryTick] = useState(0);
   const [walletState, setWalletState] = useState({
     connected: false,
     address: "",
@@ -82,20 +85,23 @@ function AccountApp({ page }) {
   const maxCompletedRef = useRef(0);
 
   useEffect(() => {
-    async function checkProfile() {
-      try {
-        const token = await getToken();
-        const data = await getMe(token);
-        setUserProfile(data.user);
-        setNeedsSetup(false);
-      } catch {
-        setNeedsSetup(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (clerkUser) checkProfile();
-  }, [clerkUser, getToken]);
+    const controller = new AbortController();
+    setLoading(true);
+    setProfileError("");
+    loadAccountProfile(getToken, getMe, { signal: controller.signal })
+      .then(({ profile, needsSetup }) => {
+        if (controller.signal.aborted) return;
+        setUserProfile(profile);
+        setNeedsSetup(needsSetup);
+      })
+      .catch(error => {
+        if (!controller.signal.aborted) setProfileError(error.status === 401
+          ? "Your session could not be verified. Please retry or sign in again."
+          : "We couldn't reach your account. The server may be waking up. Retry to load your existing profile before setting up a username.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [clerkUser?.id, getToken, retryTick]);
 
   const refreshProfile = useCallback(async () => {
     const baseline = userProfile?.completed_tasks || 0;
@@ -137,6 +143,17 @@ function AccountApp({ page }) {
         </div>
       </div>
     );
+  }
+
+  if (profileError) {
+    return <div className="min-h-screen flex items-center justify-center p-5">
+      <section role="alert" className="glass-card p-6 max-w-md space-y-4">
+        <h1 className="text-xl font-bold">Let's reconnect your account</h1>
+        <p className="text-sm text-on-surface-variant">{profileError}</p>
+        <button className="btn-primary px-5 py-3 rounded-xl" onClick={() => setRetryTick(t => t + 1)}>Retry loading account</button>
+        <SignOutButton><button className="block text-sm underline">Sign out and try again</button></SignOutButton>
+      </section>
+    </div>;
   }
 
   if (needsSetup) {

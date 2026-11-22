@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import HamburgerMenu from "./HamburgerMenu";
 import NotificationBell from "./NotificationBell";
 import WalletPanel from "./WalletPanel";
@@ -30,11 +31,11 @@ export default function Layout({
       <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-2xl">
         <div className="w-full px-4 md:px-6 h-14 md:h-16 flex items-center gap-0">
           {/* Left section — hamburger */}
-          <div className="flex items-center gap-1 pr-4 border-r border-white/10 h-9">
+          <div className="flex items-center shrink-0 sm:pr-4 sm:border-r border-white/10 h-11">
             <button
               onClick={() => setMenuOpen(true)}
               className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-              title="Menu"
+              title="Menu" aria-label="Open menu" aria-expanded={menuOpen}
             >
               <svg
                 width="18"
@@ -54,7 +55,7 @@ export default function Layout({
           </div>
 
           {/* Logo */}
-          <span className="text-base font-bold tracking-tighter gradient-text-primary font-headline px-4">
+          <span className="text-base font-bold tracking-tighter gradient-text-primary font-headline px-2 sm:px-4 shrink-0">
             TaskStaker
           </span>
 
@@ -62,14 +63,14 @@ export default function Layout({
           <div className="flex-1" />
 
           {/* Right section — notifications + address + username */}
-          <div className="flex items-center gap-2 pl-4 border-l border-white/[0.08] h-9">
+          <div className="flex items-center gap-1 sm:gap-2 sm:pl-4 sm:border-l border-white/[0.08] h-11 shrink-0">
             <NotificationBell userId={userProfile?.id} />
 
             {/* Wallet button — directly after notifications */}
             <button
               onClick={() => setWalletOpen(true)}
               className="relative p-2 hover:bg-white/5 rounded-lg transition-colors group"
-              title="Wallet"
+              title="Wallet" aria-label="Open wallet"
             >
               <span className="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:text-on-surface transition-colors">
                 account_balance_wallet
@@ -91,7 +92,7 @@ export default function Layout({
                 {walletState.address.slice(-4)}
               </button>
             )}
-            <div className="text-xs font-label text-on-surface/90 bg-white/[0.06] backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-white/10 uppercase tracking-wider">
+            <div className="hidden sm:block max-w-[180px] truncate text-xs font-label text-on-surface/90 bg-white/[0.06] backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-white/10 uppercase tracking-wider">
               @{userProfile?.username}
             </div>
           </div>
@@ -100,6 +101,12 @@ export default function Layout({
         {/* Full-width separator */}
         <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </header>
+
+      <nav aria-label="Mobile navigation" className="mobile-bottom-nav sm:hidden fixed bottom-0 inset-x-0 z-50 glass-strong flex justify-around border-t border-white/10">
+        <Link to="/dashboard" className="flex flex-col items-center gap-1 py-3 px-5 text-xs"><span className="material-symbols-outlined text-primary">dashboard</span>Tasks</Link>
+        <button onClick={() => setWalletOpen(true)} className="flex flex-col items-center gap-1 py-3 px-5 text-xs"><span className="material-symbols-outlined">account_balance_wallet</span>Wallet</button>
+        <Link to="/profile" className="flex flex-col items-center gap-1 py-3 px-5 text-xs"><span className="material-symbols-outlined">person</span>Profile</Link>
+      </nav>
 
       {/* Hamburger Menu */}
       <HamburgerMenu
@@ -117,7 +124,7 @@ export default function Layout({
       />
 
       {/* Main Content */}
-      <main className="w-full px-4 md:px-6 pt-20 md:pt-24 pb-12">
+      <main className="w-full px-4 md:px-6 pt-20 md:pt-24 pb-28 sm:pb-12 max-w-screen-2xl mx-auto">
         {children}
       </main>
     </div>

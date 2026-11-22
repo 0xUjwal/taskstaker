@@ -211,6 +211,8 @@ router.post("/create-task", requireAuthentication, async (req, res) => {
       return res.status(404).json({ error: "Validator not found" });
     if (!owner) return res.status(404).json({ error: "User not found" });
 
+    if (validator.id === owner.id) return res.status(400).json({ error: "Choose another person as validator. You cannot validate your own task." });
+
     // Sign + send with embedded wallet
     const wallet = getEmbeddedWalletWithProvider(clerkId, CHAIN_RPCS.sepolia);
     const balance = await wallet.getBalance();

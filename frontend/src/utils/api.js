@@ -28,7 +28,7 @@ async function fetchApi(path, options = {}) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(err.error || `Request failed: ${res.status}`);
+    throw Object.assign(new Error(err.error || `Request failed: ${res.status}`), { status: res.status, code: err.code });
   }
 
   return res.json();
@@ -67,8 +67,8 @@ export async function linkWallet(token, walletAddress) {
 export const resolveUser = (username) =>
   fetchApi(`/api/users/resolve/${username}`);
 
-export const getMe = (token) =>
-  fetchApi("/api/users/me", { headers: authHeaders(token) });
+export const getMe = (token, options = {}) =>
+  fetchApi("/api/users/me", { ...options, headers: authHeaders(token), cache: "no-store" });
 
 // AI
 export async function analyzeProof(

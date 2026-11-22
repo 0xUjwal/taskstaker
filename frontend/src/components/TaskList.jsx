@@ -332,8 +332,8 @@ export default function TaskList({
   return (
     <div className="space-y-4">
       {/* Filter Bar */}
-      <div className="flex items-center justify-between glass-card p-3">
-        <div className="flex gap-1.5 overflow-x-auto">
+      <div className="flex items-start gap-2 glass-card p-2 sm:p-3">
+        <div className="grid grid-cols-2 sm:flex flex-1 min-w-0 gap-1.5">
           {[
             { key: "all", label: "My activity" },
             { key: "mine", label: "My Tasks" },
@@ -354,7 +354,7 @@ export default function TaskList({
           ))}
         </div>
         <button
-          onClick={loadTasks}
+          onClick={loadTasks} aria-label="Refresh tasks"
           className="p-1.5 hover:bg-surface-variant/50 rounded-lg transition-colors"
         >
           <span

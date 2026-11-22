@@ -113,6 +113,8 @@ router.post("/assign-validator", requireAuthentication, async (req, res) => {
     if (!validator)
       return res.status(404).json({ error: "Validator not found" });
 
+    if (validator.id === owner.id) return res.status(400).json({ error: "Choose another person as validator. You cannot validate your own task." });
+
     // Upsert assignment
     const { error } = await supabase.from("task_validators").upsert(
       {
@@ -402,6 +404,13 @@ router.post("/validate", requireAuthentication, async (req, res) => {
       return res.status(400).json({ error: "taskId is required" });
     }
 
+    const access = await requireTaskAccess(clerkId, taskId);
+    const callerWallets = [access.user.wallet_address, getEmbeddedWallet(clerkId).address]
+      .filter(Boolean).map(address => address.toLowerCase());
+    if (access.isOwner || callerWallets.includes(access.task.user.toLowerCase())) {
+      return res.status(403).json({ error: "You cannot validate your own task. An independent person must review your proof." });
+    }
+
     // Parallel: caller lookup + assignment lookup
     let [{ data: callerUser }, { data: assignment }] = await Promise.all([
       supabase
@@ -567,7 +576,7 @@ router.post("/validate", requireAuthentication, async (req, res) => {
     }
   } catch (err) {
     console.error("Validate task error:", err);
-    res.status(500).json({ error: "Failed to validate task" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to validate task" });
   }
 });
 

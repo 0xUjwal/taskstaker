@@ -72,3 +72,5 @@ test('authenticated feed applies roles before returning data, and denies anonymo
     assert.equal((await fetch(base+'/assignments?taskIds=0')).status,401);
   } finally { await new Promise(r=>server.close(r)); }
 });
+
+test('old self-assignment never gives the owner validator permissions',()=>{const r=roles(task,{...assignment,validator_user_id:alice.id},alice);assert.equal(r.isOwner,true);assert.equal(r.isValidator,false);});

@@ -19,7 +19,7 @@ export default function HamburgerMenu({ open, onClose, userProfile }) {
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed top-0 left-0 h-full w-72 glass-strong border-r border-white/10 z-50 flex flex-col">
+      <div className="fixed top-0 left-0 h-[100dvh] w-72 max-w-[90vw] glass-strong border-r border-white/10 z-50 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-outline-variant/10">
           <div>
@@ -28,7 +28,7 @@ export default function HamburgerMenu({ open, onClose, userProfile }) {
               ID: {userProfile?.unique_id}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-surface-variant/50 rounded-lg transition-colors">
+          <button aria-label="Close menu" onClick={onClose} className="p-2 hover:bg-surface-variant/50 rounded-lg transition-colors">
             <span className="material-symbols-outlined text-on-surface-variant text-lg">close</span>
           </button>
         </div>
