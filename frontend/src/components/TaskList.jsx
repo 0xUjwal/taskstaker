@@ -14,6 +14,7 @@ import {
   claimFundsEmbedded,
 } from "../utils/api";
 import AIChatbot from "./AIChatbot";
+import ProofReport from "./ProofReport";
 
 function StakeDisplay({ ethAmount, ethPrice }) {
   const eth = parseFloat(ethAmount);
@@ -554,6 +555,15 @@ export default function TaskList({
                         View
                       </a>
                     </div>
+                  )}
+
+                  {/* AI advisory report: validator and owner, once proof exists */}
+                  {task.completed && task.proofUrl && (isAssignedValidator || isOwner) && (
+                    <ProofReport
+                      taskId={task.id}
+                      getToken={getToken}
+                      defaultOpen={isAssignedValidator && !task.validated}
+                    />
                   )}
 
                   {/* Validator side: waiting for proof */}

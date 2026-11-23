@@ -102,6 +102,12 @@ export async function chatWithAI(token, { messages, taskDescription, file }) {
   });
 }
 
+export const getProofReport = (token, taskId) =>
+  fetchApi(`/api/ai/report/${taskId}`, { headers: authHeaders(token), cache: "no-store" });
+
+export const rerunProofReport = (token, taskId) =>
+  fetchApi(`/api/ai/report/${taskId}/run`, { method: "POST", headers: authHeaders(token) });
+
 export const getAnalysis = (token, taskId) => fetchApi(`/api/ai/analysis/${taskId}`, { headers: authHeaders(token) });
 
 // Notifications

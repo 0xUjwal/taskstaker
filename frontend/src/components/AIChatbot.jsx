@@ -23,55 +23,16 @@ export default function AIChatbot({ task, onClose }) {
     }
   }, [task.proofUrl]);
 
-  async function runInitialAnalysis() {
+  function runInitialAnalysis() {
+    // The advisory proof report lives on the task card. The chat is for follow-up questions.
     setInitialAnalysisDone(true);
-    setLoading(true);
-
-    const systemMsg = {
-      role: "assistant",
-      content: "Analyzing the submitted proof for this task...",
-    };
-    setMessages([systemMsg]);
-
-    try {
-      const token = await getToken();
-      const result = await analyzeProof(token, {
-        taskDescription: task.name,
-        proofText: `Proof URL: ${task.proofUrl}`,
-        taskId: task.id,
-        proofUrl: task.proofUrl,
-      });
-
-      const analysis = result.analysis;
-      const analysisMsg = {
+    setMessages([
+      {
         role: "assistant",
-        content: formatAnalysis(analysis),
-        isAnalysis: true,
-        analysis,
-      };
-      setMessages([analysisMsg]);
-    } catch (err) {
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            "Failed to analyze proof. You can still chat with me about this task.",
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function formatAnalysis(analysis) {
-    if (!analysis) return "No analysis available.";
-    const status = analysis.passed ? "PASSED" : "NEEDS REVIEW";
-    let msg = `${status} — Confidence: ${analysis.confidence}%\n\n`;
-    msg += analysis.analysis;
-    if (analysis.suggestions?.length) {
-      msg += "\n\nSuggestions:\n" + analysis.suggestions.join("\n");
-    }
-    return msg;
+        content:
+          "The AI advisory report for this proof is shown on the task card. It scores how well the proof supports the task and never approves or rejects. Ask me anything about the proof or the task.",
+      },
+    ]);
   }
 
   async function handleSend(e) {

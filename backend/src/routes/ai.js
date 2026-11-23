@@ -6,6 +6,7 @@ const { analyzeProof, chatAnalysis } = require("../services/ai");
 const supabase = require("../services/supabase");
 
 const { requireTaskAccess } = require('../services/taskAccess');
+const { getReport, requestReport } = require('../services/taskReports');
 const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -183,6 +184,49 @@ router.get("/analysis/:taskId", requireAuthentication, async (req, res) => {
   } catch (err) {
     console.error("Get analysis error:", err);
     res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to get analysis" });
+  }
+});
+
+// Advisory proof report for a task (owner or assigned validator only).
+// The AI never approves or rejects: the validator decides.
+router.get("/report/:taskId", requireAuthentication, async (req, res) => {
+  try {
+    const access = await requireTaskAccess(getUserId(req), req.params.taskId);
+    res.set("Cache-Control", "private, no-store");
+    const report = await getReport(req.params.taskId);
+    if (report.status === "none" && access.task.completed && access.task.proofUrl) {
+      // Proof exists but no report yet (older task or a missed trigger): start one.
+      const started = await requestReport({
+        taskId: req.params.taskId,
+        taskName: access.task.name,
+        proofUrl: access.task.proofUrl,
+      });
+      return res.json({ report: started });
+    }
+    res.json({ report });
+  } catch (err) {
+    console.error("Get report error:", err.message);
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to load AI report" });
+  }
+});
+
+// Re-run the analysis (for example after a failure or quota reset).
+router.post("/report/:taskId/run", requireAuthentication, async (req, res) => {
+  try {
+    const access = await requireTaskAccess(getUserId(req), req.params.taskId);
+    if (!access.task.completed || !access.task.proofUrl) {
+      return res.status(400).json({ error: "No proof has been submitted for this task yet." });
+    }
+    const report = await requestReport({
+      taskId: req.params.taskId,
+      taskName: access.task.name,
+      proofUrl: access.task.proofUrl,
+      force: true,
+    });
+    res.json({ report });
+  } catch (err) {
+    console.error("Run report error:", err.message);
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to start AI analysis" });
   }
 });
 

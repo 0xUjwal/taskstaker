@@ -19,12 +19,18 @@ If the proof is text/document, evaluate its content against the task requirement
 Write all text fields in plain language — no markdown formatting.
 IMPORTANT: Your entire response must be valid JSON only. Do not include any text outside the JSON object.`;
 
-const GROQ_TEXT_MODEL =
-  process.env.GROQ_TEXT_MODEL || "llama-3.3-70b-versatile";
-const GROQ_VISION_MODEL =
-  process.env.GROQ_VISION_MODEL ||
-  "meta-llama/llama-4-scout-17b-16e-instruct";
-const GROQ_FALLBACK_MODEL = "llama-3.1-8b-instant";
+// Groq retired the Llama models used here earlier (Scout, 3.3 70B, 3.1 8B).
+// Qwen 3.8 27B handles text and images; gpt-oss-20b is a text-only fallback.
+const GROQ_TEXT_MODEL = process.env.GROQ_TEXT_MODEL || "qwen/qwen3.8-27b";
+const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL || "qwen/qwen3.8-27b";
+const GROQ_FALLBACK_MODEL = "openai/gpt-oss-20b";
+
+// Qwen 3.8 reasons by default; turn it off and hide any reasoning so replies stay short JSON/text.
+function groqExtras(model) {
+  return model.startsWith("qwen/")
+    ? { reasoning_effort: "none", reasoning_format: "hidden" }
+    : {};
+}
 
 // Extract JSON from a model response that may contain markdown code blocks
 function extractJSON(text) {
@@ -83,11 +89,9 @@ async function analyzeWithGroq(
     messages,
     temperature: 0.3,
     max_tokens: 1024,
+    response_format: { type: "json_object" },
+    ...groqExtras(model),
   };
-  // json_object mode only for text models that reliably support it
-  if (!hasImage) {
-    params.response_format = { type: "json_object" };
-  }
 
   let completion;
   try {
@@ -96,9 +100,12 @@ async function analyzeWithGroq(
     // Primary model failed — retry with a stable fallback model (text only)
     if (!hasImage && model !== GROQ_FALLBACK_MODEL) {
       const fallbackParams = {
-        ...params,
         model: GROQ_FALLBACK_MODEL,
+        messages,
+        temperature: 0.3,
+        max_tokens: 1024,
         response_format: { type: "json_object" },
+        ...groqExtras(GROQ_FALLBACK_MODEL),
       };
       completion = await groq.chat.completions.create(fallbackParams);
     } else {
@@ -118,7 +125,7 @@ async function analyzeWithGemini(
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   // Use a stable GA model; override via GEMINI_MODEL env if needed
   const modelName =
-    process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    process.env.GEMINI_MODEL || "gemini-3.8-flash";
   const model = genAI.getGenerativeModel({ model: modelName });
 
   const parts = [
@@ -227,7 +234,7 @@ IMPORTANT: Respond in plain text only. Do not use markdown formatting — no **b
 
   if (provider === "gemini") {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    const modelName = process.env.GEMINI_MODEL || "gemini-3.8-flash";
     const model = genAI.getGenerativeModel({ model: modelName });
 
     const contents = messages.map((m) => ({
@@ -291,6 +298,7 @@ IMPORTANT: Respond in plain text only. Do not use markdown formatting — no **b
       messages: groqMessages,
       temperature: 0.5,
       max_tokens: 1024,
+      ...groqExtras(groqModel),
     });
   } catch (err) {
     // Retry with stable fallback model
@@ -300,6 +308,7 @@ IMPORTANT: Respond in plain text only. Do not use markdown formatting — no **b
         messages: groqMessages,
         temperature: 0.5,
         max_tokens: 1024,
+        ...groqExtras(GROQ_FALLBACK_MODEL),
       });
     } else {
       throw err;

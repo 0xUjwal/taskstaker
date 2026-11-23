@@ -29,6 +29,7 @@ const {
 
 const { verifiedAddress } = require('../services/walletLinkProof');
 const { taskRoles, readContract, accountContext, requireTaskAccess } = require('../services/taskAccess');
+const { requestReport } = require('../services/taskReports');
 const router = express.Router();
 
 // The feed is derived from the authenticated account, never a client-supplied
@@ -343,6 +344,11 @@ router.post("/submit-proof", requireAuthentication, async (req, res) => {
 
     // Respond immediately — tx is broadcast, confirmation happens on-chain
     res.json({ success: true, message: "Proof submitted successfully" });
+
+    // Queue the advisory AI report. Never blocks or fails proof submission.
+    Promise.resolve()
+      .then(() => requestReport({ taskId: Number(taskId), taskName: taskName || onChainTask.name, proofUrl }))
+      .catch((err) => console.error("AI report queue error:", err.message));
 
     // Notify validator in background (after response is sent)
     if (assignment) {
