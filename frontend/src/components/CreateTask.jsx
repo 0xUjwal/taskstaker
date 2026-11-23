@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDeadlineHours, MIN_DEADLINE_HOURS } from "../utils/deadline";
 import { contract, parseEther, getReadOnlyContract } from "../utils/web3";
 import {
   resolveUser,
@@ -91,11 +92,12 @@ export default function CreateTask({
     setError("");
     setSuccess(null);
 
-    const hoursNum = parseInt(hours);
-    if (isNaN(hoursNum) || hoursNum < 1) {
-      setError("Minimum deadline is 1 hour");
+    const parsedDeadline = parseDeadlineHours(hours);
+    if (parsedDeadline.error) {
+      setError(parsedDeadline.error);
       return;
     }
+    const hoursNum = parsedDeadline.hours;
 
     const ethVal = parseFloat(stakeEth);
     if (isNaN(ethVal) || ethVal <= 0) {
@@ -394,9 +396,9 @@ export default function CreateTask({
             type="number"
             value={hours}
             onChange={(e) => setHours(e.target.value)}
-            min="1"
+            min={MIN_DEADLINE_HOURS}
             className="w-full glass-input p-3.5 font-body text-sm"
-            placeholder="Minimum 1 hour"
+            placeholder={`Minimum ${MIN_DEADLINE_HOURS} hours`}
             required
           />
         </div>

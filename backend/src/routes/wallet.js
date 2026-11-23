@@ -16,6 +16,7 @@ const {
 } = require("../services/embeddedWallet");
 const supabase = require("../services/supabase");
 
+const { parseDeadlineHours } = require('../services/deadline');
 const router = express.Router();
 
 const CHAIN_RPCS = {
@@ -176,10 +177,11 @@ router.post("/create-task", requireAuthentication, async (req, res) => {
         });
     }
 
-    const hoursNum = parseInt(hours);
-    if (isNaN(hoursNum) || hoursNum < 1) {
-      return res.status(400).json({ error: "Minimum deadline is 1 hour" });
+    const parsedDeadline = parseDeadlineHours(hours);
+    if (parsedDeadline.error) {
+      return res.status(400).json({ error: parsedDeadline.error });
     }
+    const hoursNum = parsedDeadline.hours;
 
     const ethVal = parseFloat(stakeEth);
     if (isNaN(ethVal) || ethVal <= 0) {
