@@ -257,6 +257,7 @@ export default function TaskList({
       const result = await uploadFile(file, token);
       updateActionState(task.id, { statusText: "Sending to validator..." });
       await resubmitProof(token, { taskId: task.id, proofUrl: result.url });
+      await refreshReview(task.id, token);
       updateActionState(task.id, { loading: false, showUploader: false });
       loadTasks();
     } catch (err) {
@@ -264,11 +265,21 @@ export default function TaskList({
     }
   };
 
+  // Pull this task's review state right after a review action, so the UI does not
+  // wait for (or lose to) the slow full task reload.
+  const refreshReview = async (taskId, token) => {
+    try {
+      const r = await getReview(token, taskId);
+      setReviews((prev) => ({ ...prev, [taskId]: r.review }));
+    } catch {}
+  };
+
   const handleAskNewProof = async (task) => {
     try {
       updateActionState(task.id, { loading: true, statusText: "Asking for a new proof...", error: "" });
       const token = await getToken();
       await requestNewProof(token, { taskId: task.id });
+      await refreshReview(task.id, token);
       updateActionState(task.id, { loading: false });
       loadTasks();
     } catch (err) {
@@ -282,6 +293,7 @@ export default function TaskList({
       updateActionState(task.id, { loading: true, statusText: "Rejecting...", error: "" });
       const token = await getToken();
       await rejectTask(token, { taskId: task.id });
+      await refreshReview(task.id, token);
       updateActionState(task.id, { loading: false });
       loadTasks();
     } catch (err) {
