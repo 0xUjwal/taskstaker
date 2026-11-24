@@ -130,7 +130,7 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: "account_balance_wallet", title: "Stake test ETH", desc: "Commit Sepolia ETH as proof of intent. It is locked in the TaskStakerV2 smart contract until you deliver.", step: "01", color: "primary" },
+              { icon: "account_balance_wallet", title: "Stake test ETH", desc: "Commit Sepolia ETH as proof of intent. It is locked in the TaskStaker smart contract until you deliver.", step: "01", color: "primary" },
               { icon: "upload_file", title: "Submit Proof", desc: "Upload screenshots, GitHub commits, or data logs as evidence of your task completion.", step: "02", color: "secondary" },
               { icon: "psychology", title: "Human Validation", desc: "A human validator reviews your proof, backed by an AI analysis that reads the evidence and gives a pass/fail recommendation.", step: "03", color: "primary-dim" },
               { icon: "workspace_premium", title: "Claim Reward", desc: "Get your full stake back on-chain the moment your validator approves. Miss the deadline and the stake is forfeited.", step: "04", color: "tertiary" },
@@ -236,7 +236,8 @@ export default function Landing() {
       <footer className="bg-surface w-full py-12 border-t border-secondary-container/10">
         <div className="max-w-7xl mx-auto px-8 flex flex-col items-center gap-6">
           <span className="text-2xl font-black text-secondary-container font-headline">TaskStaker</span>
-          <p className="text-outline text-sm font-body">© 2026 TaskStaker. Secured by the TaskStakerV2 contract on Sepolia.</p>
+          <p className="text-outline text-sm font-body">© 2026 TaskStaker. Secured by the TaskStaker contract on Sepolia.</p>
+          <p className="text-outline text-xs font-body">Made by Ujwal</p>
           <div className="flex gap-8">
             <a className="text-outline hover:text-primary transition-all font-body text-sm" href="#">Privacy Policy</a>
             <a className="text-outline hover:text-primary transition-all font-body text-sm" href="#">Terms of Service</a>

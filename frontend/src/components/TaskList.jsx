@@ -635,6 +635,29 @@ export default function TaskList({
                         </span>
                         {review?.proofCount > 1 ? `Latest proof (${review.proofCount})` : "Proof Attached"}
                       </span>
+                      <div className="flex items-center gap-3">
+                        {review?.proofs?.length > 1 && (
+                          <details className="relative">
+                            <summary className="cursor-pointer list-none flex items-center gap-1 text-xs font-label font-bold text-on-surface-variant hover:text-primary select-none">
+                              All proofs ({review.proofs.length})
+                              <span className="material-symbols-outlined text-sm">expand_more</span>
+                            </summary>
+                            <div className="absolute right-0 z-20 mt-1 min-w-[150px] rounded-lg border border-white/10 bg-surface-container-high p-1 shadow-xl">
+                              {review.proofs.map((p, i) => (
+                                <a
+                                  key={p.url}
+                                  href={p.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-center justify-between gap-3 rounded px-3 py-1.5 text-xs font-label text-on-surface hover:bg-white/10"
+                                >
+                                  <span>Proof {i + 1}{i === review.proofs.length - 1 ? " (latest)" : ""}</span>
+                                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                                </a>
+                              ))}
+                            </div>
+                          </details>
+                        )}
                       <a
                         href={proofUrl}
                         target="_blank"
@@ -646,6 +669,7 @@ export default function TaskList({
                         </span>
                         View
                       </a>
+                      </div>
                     </div>
                   )}
 
@@ -879,8 +903,13 @@ export default function TaskList({
                               className="w-full flex items-center justify-center gap-1.5 bg-error/10 hover:bg-error/20 text-error text-xs font-label font-bold py-2.5 rounded-lg transition-colors border border-error/20 uppercase tracking-wider"
                             >
                               <span className="material-symbols-outlined text-sm">block</span>
-                              Reject Task (after {review.proofCount} proofs)
+                              Reject Task
                             </button>
+                          )}
+                          {review && !review.canReject && review.status !== "rejected" && review.proofCount < (review.rejectAfter || 3) && (
+                            <p className="text-[10px] font-label text-on-surface-variant text-center uppercase tracking-widest">
+                              Reject unlocks after {review.rejectAfter || 3} proofs ({review.proofCount} so far)
+                            </p>
                           )}
                           </div>
                         )}

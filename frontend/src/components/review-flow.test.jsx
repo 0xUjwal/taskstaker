@@ -37,6 +37,13 @@ describe('proof review flow', () => {
     expect(screen.getByText('Validate Task')).toBeTruthy();
     expect(screen.queryByText(/Reject Task/)).toBeNull();
   });
+  it('lists every proof in a dropdown and explains when Reject unlocks', async () => {
+    await show(base, review({ proofCount: 2, proofs: [{ url: 'https://x/p1.png' }, { url: 'https://x/p2.png' }] }), 'All proofs (2)');
+    fireEvent.click(screen.getByText(/All proofs/));
+    expect(screen.getByText('Proof 1').closest('a').getAttribute('href')).toBe('https://x/p1.png');
+    expect(screen.getByText(/Proof 2/)).toBeTruthy();
+    expect(screen.getByText(/Reject unlocks after 3 proofs \(2 so far\)/)).toBeTruthy();
+  });
   it('Ask for New Proof calls the backend', async () => {
     m.requestNewProof.mockResolvedValue({ success: true });
     await show(base, review(), 'Ask for New Proof');
@@ -46,14 +53,14 @@ describe('proof review flow', () => {
   it('Reject appears after 3 proofs, asks to confirm, then calls the backend', async () => {
     m.rejectTask.mockResolvedValue({ success: true });
     window.confirm = vi.fn(() => true);
-    await show(base, review({ proofCount: 3, canReject: true }), 'Reject Task (after 3 proofs)');
+    await show(base, review({ proofCount: 3, canReject: true }), 'Reject Task');
     fireEvent.click(screen.getByText(/Reject Task/));
     await waitFor(() => expect(m.rejectTask).toHaveBeenCalledWith('t', { taskId: 7 }));
     expect(window.confirm).toHaveBeenCalled();
   });
   it('declining the confirm does not reject', async () => {
     window.confirm = vi.fn(() => false);
-    await show(base, review({ proofCount: 3, canReject: true }), 'Reject Task (after 3 proofs)');
+    await show(base, review({ proofCount: 3, canReject: true }), 'Reject Task');
     fireEvent.click(screen.getByText(/Reject Task/));
     expect(m.rejectTask).not.toHaveBeenCalled();
   });
