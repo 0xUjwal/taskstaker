@@ -123,6 +123,40 @@ router.get("/resolve/:username", async (req, res) => {
   }
 });
 
+// Change username. Usernames stay unique; assignment rows keep a copy of the
+// name for display, so those are updated too.
+router.patch("/username", requireAuthentication, async (req, res) => {
+  try {
+    const clerkId = getUserId(req);
+    const username = String(req.body?.username || "").trim().toLowerCase();
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+      return res.status(400).json({ error: "Username must be 3-20 letters, numbers or underscores" });
+    }
+    const { data: me, error: meError } = await supabase.from("users").select("*").eq("clerk_id", clerkId).maybeSingle();
+    if (meError) throw meError;
+    if (!me) return res.status(404).json({ error: "User not registered", code: "PROFILE_NOT_FOUND" });
+    if (me.username === username) return res.json({ user: me, unchanged: true });
+
+    const { data: taken, error: takenError } = await supabase.from("users").select("id").eq("username", username).neq("id", me.id).limit(1);
+    if (takenError) throw takenError;
+    if (taken?.length) return res.status(409).json({ error: "Username already taken" });
+
+    const { data, error } = await supabase.from("users").update({ username }).eq("id", me.id).select().single();
+    if (error) throw error;
+
+    // Best effort: keep the display copies on existing tasks in step.
+    await supabase.from("task_validators").update({ owner_username: username }).eq("owner_user_id", me.id)
+      .then(({ error: e }) => e && console.warn("owner_username sync failed:", e.message));
+    await supabase.from("task_validators").update({ validator_username: username }).eq("validator_user_id", me.id)
+      .then(({ error: e }) => e && console.warn("validator_username sync failed:", e.message));
+
+    res.json({ user: data });
+  } catch (err) {
+    console.error("Change username error:", err.message);
+    res.status(500).json({ error: "Failed to change username" });
+  }
+});
+
 // Get current user profile. Only a successful empty lookup means setup is needed.
 router.get("/me", requireAuthentication, async (req, res) => {
   res.set("Cache-Control", "private, no-store");

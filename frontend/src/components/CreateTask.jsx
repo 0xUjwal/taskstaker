@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { parseDeadlineHours, MIN_DEADLINE_HOURS } from "../utils/deadline";
 import { contract, parseEther, getReadOnlyContract } from "../utils/web3";
 import {
@@ -25,6 +25,7 @@ export default function CreateTask({
   const [stakeUsd, setStakeUsd] = useState("");
   const [stakeEth, setStakeEth] = useState("");
   const [ethPrice, setEthPrice] = useState(null);
+  const lastEdited = useRef(null); // "usd" | "eth": which box the user typed in last
   const [relayerAddress, setRelayerAddress] = useState("");
   const [embeddedWallet, setEmbeddedWallet] = useState(null); // { address, balanceEth }
   const [walletMode, setWalletMode] = useState("embedded"); // "embedded" | "metamask"
@@ -52,7 +53,35 @@ export default function CreateTask({
     init();
   }, [getToken]);
 
+  // Keep the ETH price live: retry quickly until it loads, then refresh every 30 s.
+  useEffect(() => {
+    let timer;
+    let stopped = false;
+    const tick = async () => {
+      let ok = false;
+      try {
+        const d = await getEthPrice();
+        if (d?.usd && !stopped) { setEthPrice(d.usd); ok = true; }
+      } catch {}
+      if (!stopped) timer = setTimeout(tick, ok ? 30000 : 5000);
+    };
+    timer = setTimeout(tick, 5000);
+    return () => { stopped = true; clearTimeout(timer); };
+  }, []);
+
+  // When the price arrives or changes, recompute the box the user did NOT type in.
+  useEffect(() => {
+    if (!ethPrice) return;
+    if (lastEdited.current === "usd" && parseFloat(stakeUsd) > 0) {
+      setStakeEth((parseFloat(stakeUsd) / ethPrice).toFixed(6));
+    } else if (lastEdited.current === "eth" && parseFloat(stakeEth) > 0) {
+      setStakeUsd((parseFloat(stakeEth) * ethPrice).toFixed(2));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ethPrice]);
+
   function handleUsdChange(val) {
+    lastEdited.current = "usd";
     setStakeUsd(val);
     if (ethPrice && val && !isNaN(parseFloat(val))) {
       setStakeEth((parseFloat(val) / ethPrice).toFixed(6));
@@ -62,6 +91,7 @@ export default function CreateTask({
   }
 
   function handleEthChange(val) {
+    lastEdited.current = "eth";
     setStakeEth(val);
     if (ethPrice && val && !isNaN(parseFloat(val))) {
       setStakeUsd((parseFloat(val) * ethPrice).toFixed(2));

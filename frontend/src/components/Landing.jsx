@@ -60,7 +60,7 @@ export default function Landing() {
               </SignInButton>
               <SignInButton mode="modal">
                 <button className="btn-ghost px-10 py-4 rounded-xl font-headline font-bold text-lg">
-                  Connect Wallet
+                  Sign In
                 </button>
               </SignInButton>
             </div>

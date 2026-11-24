@@ -203,7 +203,7 @@ function AccountApp({ page }) {
       {page === "leaderboard" ? (
         <Leaderboard userProfile={effectiveProfile} />
       ) : page === "profile" ? (
-        <Profile userProfile={effectiveProfile} walletState={walletState} />
+        <Profile userProfile={effectiveProfile} walletState={walletState} onProfileChange={setUserProfile} />
       ) : (
         <Dashboard
           userProfile={effectiveProfile}

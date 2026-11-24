@@ -208,3 +208,6 @@ export const rejectTask = (token, payload) =>
 
 export const forfeitTaskOffChain = (token, payload) =>
   fetchApi("/api/tasks/forfeit", { method: "POST", headers: authHeaders(token), body: JSON.stringify(payload) });
+
+export const changeUsername = (token, username) =>
+  fetchApi("/api/users/username", { method: "PATCH", headers: authHeaders(token), body: JSON.stringify({ username }) });
