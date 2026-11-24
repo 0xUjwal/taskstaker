@@ -12,6 +12,11 @@ import {
   getMyTasks,
   getEmbeddedWalletInfo,
   claimFundsEmbedded,
+  getReview,
+  resubmitProof,
+  requestNewProof,
+  rejectTask,
+  forfeitTaskOffChain,
 } from "../utils/api";
 import AIChatbot from "./AIChatbot";
 import ProofReport from "./ProofReport";
@@ -57,6 +62,7 @@ export default function TaskList({
   const [ethPrice, setEthPrice] = useState(null);
   const [assignments, setAssignments] = useState({});
   const [embeddedAddress, setEmbeddedAddress] = useState("");
+  const [reviews, setReviews] = useState({});
   const loadGenRef = useRef(0); // increments each loadTasks call; guards stale assignment updates
 
   useEffect(() => {
@@ -117,6 +123,21 @@ export default function TaskList({
 
       const reversed = tasksData;
       setTasks(reversed);
+
+      // Review state (extra proofs, new-proof request, rejection) for tasks that have a proof.
+      // A failure here never hides the task: it just falls back to the basic buttons.
+      Promise.all(
+        reversed
+          .filter((t) => t.completed && !t.claimed)
+          .map((t) =>
+            getReview(token, t.id)
+              .then((r) => [t.id, r.review])
+              .catch(() => null),
+          ),
+      ).then((pairs) => {
+        if (gen !== loadGenRef.current) return;
+        setReviews(Object.fromEntries(pairs.filter(Boolean)));
+      });
       const immediateCompleted = reversed.filter(
         (t) => t.isOwner && t.claimed && t.validated,
       ).length;
@@ -222,6 +243,47 @@ export default function TaskList({
     }
   };
 
+  // Owner sends another proof (the contract keeps the first; later ones live in the app)
+  const handleResubmit = async (task, file) => {
+    if (!file) return;
+    try {
+      updateActionState(task.id, { loading: true, statusText: "Uploading new proof...", error: "" });
+      const token = await getToken();
+      const result = await uploadFile(file, token);
+      updateActionState(task.id, { statusText: "Sending to validator..." });
+      await resubmitProof(token, { taskId: task.id, proofUrl: result.url });
+      updateActionState(task.id, { loading: false, showUploader: false });
+      loadTasks();
+    } catch (err) {
+      updateActionState(task.id, { error: err.message || "Failed to send the new proof", loading: false, showUploader: false });
+    }
+  };
+
+  const handleAskNewProof = async (task) => {
+    try {
+      updateActionState(task.id, { loading: true, statusText: "Asking for a new proof...", error: "" });
+      const token = await getToken();
+      await requestNewProof(token, { taskId: task.id });
+      updateActionState(task.id, { loading: false });
+      loadTasks();
+    } catch (err) {
+      updateActionState(task.id, { error: err.message || "Request failed", loading: false });
+    }
+  };
+
+  const handleReject = async (task) => {
+    if (!window.confirm("Reject this task? The owner will not get the stake back. This cannot be undone.")) return;
+    try {
+      updateActionState(task.id, { loading: true, statusText: "Rejecting...", error: "" });
+      const token = await getToken();
+      await rejectTask(token, { taskId: task.id });
+      updateActionState(task.id, { loading: false });
+      loadTasks();
+    } catch (err) {
+      updateActionState(task.id, { error: err.message || "Reject failed", loading: false });
+    }
+  };
+
   // Validate — always goes through backend relayer (works for both new and legacy tasks)
   // Backend verifies auth via task_validators table OR on-chain validator address
   const handleValidate = async (task) => {
@@ -291,22 +353,18 @@ export default function TaskList({
     }
   };
 
+  // Anyone can call forfeitStake on-chain, so the backend relayer sends it. No wallet needed.
   const handleForfeit = async (taskId) => {
-    if (!walletReady || !contract) {
-      updateActionState(taskId, {
-        error: "Connect your wallet to acknowledge penalty",
-      });
-      return;
-    }
     try {
-      updateActionState(taskId, { loading: true, statusText: "Processing..." });
-      const tx = await contract.forfeitStake(taskId);
-      await tx.wait();
+      updateActionState(taskId, { loading: true, statusText: "Applying penalty...", error: "" });
+      const token = await getToken();
+      await forfeitTaskOffChain(token, { taskId });
       updateActionState(taskId, { loading: false });
+      setTimeout(loadTasks, 4000);
       loadTasks();
     } catch (err) {
       updateActionState(taskId, {
-        error: err.reason || err.message,
+        error: err.message || "Could not apply the penalty",
         loading: false,
       });
     }
@@ -407,7 +465,15 @@ export default function TaskList({
             });
             let borderColor = "border-l-primary";
 
-            if (task.claimed && task.validated) {
+            const review = reviews[task.id];
+            const isRejected = review?.status === "rejected";
+            const proofUrl = review?.currentProofUrl || task.proofUrl;
+
+            if (isRejected) {
+              statusColor = "text-error bg-error/10 border-error/20";
+              statusLabel = "Rejected";
+              borderColor = "border-l-error";
+            } else if (task.claimed && task.validated) {
               statusColor = "text-tertiary bg-tertiary/10 border-tertiary/20";
               statusLabel = "Completed";
               borderColor = "border-l-tertiary";
@@ -535,16 +601,16 @@ export default function TaskList({
                   </div>
 
                   {/* Proof link */}
-                  {task.proofUrl && (
+                  {proofUrl && (
                     <div className="flex items-center justify-between bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2">
                       <span className="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-sm text-tertiary">
                           attach_file
                         </span>
-                        Proof Attached
+                        {review?.proofCount > 1 ? `Latest proof (${review.proofCount})` : "Proof Attached"}
                       </span>
                       <a
-                        href={task.proofUrl}
+                        href={proofUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-1 text-xs font-label font-bold text-primary hover:text-primary-dim transition-colors"
@@ -560,10 +626,35 @@ export default function TaskList({
                   {/* AI advisory report: validator and owner, once proof exists */}
                   {task.completed && task.proofUrl && (isAssignedValidator || isOwner) && (
                     <ProofReport
+                      key={proofUrl}
                       taskId={task.id}
                       getToken={getToken}
                       defaultOpen={isAssignedValidator && !task.validated}
                     />
+                  )}
+
+                  {/* Review status banners */}
+                  {task.completed && !task.claimed && isRejected && (
+                    <div className="rounded-lg border border-error/25 bg-error/5 px-3 py-2.5 text-xs text-error font-label leading-snug">
+                      {isOwner
+                        ? "The validator rejected this task after reviewing your proofs. The stake is not returned."
+                        : `You rejected this task after ${review.proofCount} proofs.`}
+                    </div>
+                  )}
+                  {task.completed && !task.claimed && !isRejected && review?.status === "needs_new_proof" && (
+                    <div className="rounded-lg border border-yellow-400/25 bg-yellow-400/5 px-3 py-2.5 text-xs text-yellow-200 font-label leading-snug">
+                      {isOwner
+                        ? "The validator says this proof is not enough. Upload a clearer proof below."
+                        : "You asked the owner for a new proof. Waiting for them to upload it."}
+                    </div>
+                  )}
+                  {task.completed && !task.claimed && !isRejected && review && review.proofCount > 1 && (
+                    <p className="text-[10px] text-outline font-label">
+                      Proofs sent: {review.proofCount}
+                      {isAssignedValidator && !task.validated && review.proofCount < review.rejectAfter
+                        ? ` (you can reject after ${review.rejectAfter})`
+                        : ""}
+                    </p>
                   )}
 
                   {/* Validator side: waiting for proof */}
@@ -676,10 +767,50 @@ export default function TaskList({
                           </div>
                         ))}
 
+                      {/* Owner: send another proof after the first */}
+                      {review?.canResubmit &&
+                        (state.showUploader ? (
+                          <div className="flex bg-black/30 rounded-lg overflow-hidden border border-primary/20">
+                            <input
+                              type="file"
+                              id={`file-more-${task.id}`}
+                              className="sr-only"
+                              aria-label={`Upload new proof for task ${task.id}`}
+                              onChange={(e) => handleResubmit(task, e.target.files[0])}
+                            />
+                            <label
+                              htmlFor={`file-more-${task.id}`}
+                              className="flex-1 text-center py-2.5 text-xs font-label font-bold text-primary hover:bg-primary/5 cursor-pointer flex items-center justify-center gap-1.5 uppercase tracking-wider"
+                            >
+                              <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                              Select & Upload New Proof
+                            </label>
+                            <button
+                              onClick={() => updateActionState(task.id, { showUploader: false })}
+                              className="px-3 border-l border-outline-variant/20 text-outline hover:text-on-surface transition-colors text-sm"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => updateActionState(task.id, { showUploader: true })}
+                            className={`w-full flex items-center justify-center gap-1.5 text-xs font-label font-bold py-2.5 rounded-lg transition-colors border uppercase tracking-wider ${
+                              review.status === "needs_new_proof"
+                                ? "btn-primary border-transparent"
+                                : "bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                            Submit Another Proof
+                          </button>
+                        ))}
+
                       {/* Validator: validate */}
                       {isAssignedValidator &&
                         task.completed &&
-                        !task.validated && (
+                        !task.validated &&
+                        !isRejected && (
                           <div className="space-y-1.5">
                           <p className="text-[10px] text-tertiary font-label flex items-center gap-1">
                             <span className="material-symbols-outlined text-xs">check_circle</span>
@@ -695,6 +826,17 @@ export default function TaskList({
                               </span>
                               Validate Task
                             </button>
+                            {review?.canRequestProof && (
+                              <button
+                                onClick={() => handleAskNewProof(task)}
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-300 text-xs font-label font-bold py-2.5 rounded-lg transition-colors border border-yellow-400/25 uppercase tracking-wider"
+                              >
+                                <span className="material-symbols-outlined text-sm">
+                                  upload_file
+                                </span>
+                                Ask for New Proof
+                              </button>
+                            )}
                             <button
                               onClick={() => setChatTask(task)}
                               className="flex items-center gap-1.5 bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant text-xs font-label font-bold py-2.5 px-3 rounded-lg transition-colors border border-outline-variant/20"
@@ -705,6 +847,15 @@ export default function TaskList({
                               </span>
                             </button>
                           </div>
+                          {review?.canReject && (
+                            <button
+                              onClick={() => handleReject(task)}
+                              className="w-full flex items-center justify-center gap-1.5 bg-error/10 hover:bg-error/20 text-error text-xs font-label font-bold py-2.5 rounded-lg transition-colors border border-error/20 uppercase tracking-wider"
+                            >
+                              <span className="material-symbols-outlined text-sm">block</span>
+                              Reject Task (after {review.proofCount} proofs)
+                            </button>
+                          )}
                           </div>
                         )}
 

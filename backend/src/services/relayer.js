@@ -63,9 +63,21 @@ async function relayValidateTask(taskId) {
   return { txHash: tx.hash };
 }
 
+async function relayForfeitStake(taskId) {
+  const c = getRelayerContract();
+  const gas = await c.estimateGas
+    .forfeitStake(taskId)
+    .then((g) => g.mul(120).div(100));
+  const tx = await c.forfeitStake(taskId, { gasLimit: gas });
+  tx.wait().catch((err) =>
+    console.error(`forfeitStake tx failed [${tx.hash}]:`, err.message),
+  );
+  return { txHash: tx.hash };
+}
+
 function getRelayerAddress() {
   getRelayerContract(); // ensure init
   return relayerWallet?.address;
 }
 
-module.exports = { relaySubmitProof, relayValidateTask, getRelayerAddress };
+module.exports = { relaySubmitProof, relayValidateTask, relayForfeitStake, getRelayerAddress };

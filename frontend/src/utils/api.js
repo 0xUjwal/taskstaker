@@ -192,3 +192,19 @@ export const claimFundsEmbedded = (token, payload) =>
     headers: authHeaders(token),
     body: JSON.stringify(payload),
   });
+
+// Proof review flow (extra proofs, ask for a new proof, reject) and penalty
+export const getReview = (token, taskId) =>
+  fetchApi(`/api/tasks/review/${taskId}`, { headers: authHeaders(token), cache: 'no-store' });
+
+export const resubmitProof = (token, payload) =>
+  fetchApi("/api/tasks/resubmit-proof", { method: "POST", headers: authHeaders(token), body: JSON.stringify(payload) });
+
+export const requestNewProof = (token, payload) =>
+  fetchApi("/api/tasks/request-proof", { method: "POST", headers: authHeaders(token), body: JSON.stringify(payload) });
+
+export const rejectTask = (token, payload) =>
+  fetchApi("/api/tasks/reject", { method: "POST", headers: authHeaders(token), body: JSON.stringify(payload) });
+
+export const forfeitTaskOffChain = (token, payload) =>
+  fetchApi("/api/tasks/forfeit", { method: "POST", headers: authHeaders(token), body: JSON.stringify(payload) });

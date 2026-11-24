@@ -16,7 +16,7 @@ const express = require("express");
 const { ethers } = require("ethers");
 const { requireAuthentication, getUserId } = require("../middleware/auth");
 const supabase = require("../services/supabase");
-const { relaySubmitProof, relayValidateTask } = require("../services/relayer");
+const { relaySubmitProof, relayValidateTask, relayForfeitStake } = require("../services/relayer");
 const {
   sendEmail,
   proofSubmittedEmail,
@@ -29,7 +29,8 @@ const {
 
 const { verifiedAddress } = require('../services/walletLinkProof');
 const { taskRoles, readContract, accountContext, requireTaskAccess } = require('../services/taskAccess');
-const { requestReport } = require('../services/taskReports');
+const { requestReport, isOurStorageUrl } = require('../services/taskReports');
+const { getReviewState, addAttempt, addDecision } = require('../services/reviewState');
 const router = express.Router();
 
 // The feed is derived from the authenticated account, never a client-supplied
@@ -532,6 +533,16 @@ router.post("/validate", requireAuthentication, async (req, res) => {
       }
     }
 
+    // A task the validator rejected can no longer be approved.
+    try {
+      const review = await getReviewState(Number(taskId), access.task.proofUrl);
+      if (review.status === "rejected") {
+        return res.status(409).json({ error: "This task was rejected. It can no longer be validated." });
+      }
+    } catch (err) {
+      console.warn("review state check failed:", err.message);
+    }
+
     // Relay validateTask on-chain (fire-and-forget — returns after tx broadcast)
     try {
       await relayValidateTask(Number(taskId));
@@ -582,6 +593,149 @@ router.post("/validate", requireAuthentication, async (req, res) => {
   } catch (err) {
     console.error("Validate task error:", err);
     res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to validate task" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Proof review flow (off-chain, see services/reviewState.js)
+// ---------------------------------------------------------------------------
+
+async function notifyUser(userId, payload) {
+  if (!userId) return;
+  try {
+    await supabase.from("notifications").insert({ user_id: userId, ...payload });
+  } catch (err) {
+    console.error("Notification error (review):", err.message);
+  }
+}
+
+function reviewView(access, review) {
+  const settled = access.task.validated || access.task.claimed;
+  const open = access.task.completed && !settled && review.status !== "rejected";
+  return {
+    ...review,
+    canResubmit: access.isOwner && open,
+    canRequestProof: access.isValidator && open && review.status !== "needs_new_proof",
+    canReject: access.isValidator && open && review.canReject,
+  };
+}
+
+// Review state for a task: proofs so far, whether a new proof was requested, rejected or not.
+router.get("/review/:taskId", requireAuthentication, async (req, res) => {
+  try {
+    const access = await requireTaskAccess(getUserId(req), req.params.taskId);
+    const review = await getReviewState(Number(req.params.taskId), access.task.proofUrl);
+    res.set("Cache-Control", "private, no-store");
+    res.json({ review: reviewView(access, review) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to load review state" });
+  }
+});
+
+// Owner uploads another proof after the first one (the contract only stores the first).
+router.post("/resubmit-proof", requireAuthentication, async (req, res) => {
+  try {
+    const { taskId, proofUrl } = req.body;
+    if (taskId === undefined || !proofUrl) return res.status(400).json({ error: "taskId and proofUrl are required" });
+    if (!isOurStorageUrl(proofUrl)) return res.status(400).json({ error: "The proof must be uploaded through TaskStaker." });
+    const access = await requireTaskAccess(getUserId(req), taskId, true);
+    if (!access.task.completed) return res.status(400).json({ error: "Submit your first proof before sending another." });
+    if (access.task.validated || access.task.claimed) return res.status(400).json({ error: "This task is already settled." });
+    const review = await getReviewState(Number(taskId), access.task.proofUrl);
+    if (review.status === "rejected") return res.status(409).json({ error: "This task was rejected by the validator." });
+    if (review.proofs.some((p) => p.url === proofUrl)) return res.json({ success: true, alreadySubmitted: true });
+
+    await addAttempt(Number(taskId), proofUrl);
+    res.json({ success: true, proofCount: review.proofCount + 1 });
+
+    Promise.resolve()
+      .then(() => requestReport({ taskId: Number(taskId), taskName: access.task.name, proofUrl }))
+      .catch((err) => console.error("AI report queue error:", err.message));
+    const { data: owner } = await supabase.from("users").select("username").eq("id", access.user.id).maybeSingle();
+    await notifyUser(access.assignment?.validator_user_id, {
+      type: "proof_submitted",
+      title: "New proof submitted",
+      message: `@${owner?.username || "The owner"} sent proof #${review.proofCount + 1} for task #${taskId}. Review it and validate.`,
+      task_id: Number(taskId),
+    });
+  } catch (err) {
+    console.error("Resubmit proof error:", err.message);
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to submit proof" });
+  }
+});
+
+// Validator asks the owner for a better proof.
+router.post("/request-proof", requireAuthentication, async (req, res) => {
+  try {
+    const { taskId, note } = req.body;
+    if (taskId === undefined) return res.status(400).json({ error: "taskId is required" });
+    const access = await requireTaskAccess(getUserId(req), taskId);
+    if (!access.isValidator || access.isOwner) return res.status(403).json({ error: "Only the assigned validator can do this." });
+    if (!access.task.completed || access.task.validated || access.task.claimed) {
+      return res.status(400).json({ error: "This task is not waiting for review." });
+    }
+    const review = await getReviewState(Number(taskId), access.task.proofUrl);
+    if (review.status === "rejected") return res.status(409).json({ error: "This task was rejected." });
+    await addDecision(Number(taskId), "needs_new_proof", note);
+    res.json({ success: true });
+    await notifyUser(access.assignment?.owner_user_id, {
+      type: "new_proof_requested",
+      title: "Validator asked for a new proof",
+      message: `The proof for task #${taskId} "${access.task.name}" was not enough. Upload a clearer one.`,
+      task_id: Number(taskId),
+    });
+  } catch (err) {
+    console.error("Request proof error:", err.message);
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to request a new proof" });
+  }
+});
+
+// Validator rejects the task. Only after the owner has sent at least 3 proofs.
+router.post("/reject", requireAuthentication, async (req, res) => {
+  try {
+    const { taskId, note } = req.body;
+    if (taskId === undefined) return res.status(400).json({ error: "taskId is required" });
+    const access = await requireTaskAccess(getUserId(req), taskId);
+    if (!access.isValidator || access.isOwner) return res.status(403).json({ error: "Only the assigned validator can reject." });
+    if (!access.task.completed || access.task.validated || access.task.claimed) {
+      return res.status(400).json({ error: "This task is not waiting for review." });
+    }
+    const review = await getReviewState(Number(taskId), access.task.proofUrl);
+    if (review.status === "rejected") return res.json({ success: true, alreadyRejected: true });
+    if (!review.canReject) {
+      return res.status(400).json({ error: `You can reject after the owner has sent ${review.rejectAfter} proofs (${review.proofCount} so far).` });
+    }
+    await addDecision(Number(taskId), "rejected", note);
+    res.json({ success: true });
+    await notifyUser(access.assignment?.owner_user_id, {
+      type: "task_rejected",
+      title: "Task rejected",
+      message: `The validator rejected task #${taskId} "${access.task.name}" after ${review.proofCount} proofs.`,
+      task_id: Number(taskId),
+    });
+  } catch (err) {
+    console.error("Reject task error:", err.message);
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to reject the task" });
+  }
+});
+
+// Owner acknowledges a missed deadline. forfeitStake can be called by anyone,
+// so the backend relayer sends it: no wallet connection is needed.
+router.post("/forfeit", requireAuthentication, async (req, res) => {
+  try {
+    const { taskId } = req.body;
+    if (taskId === undefined) return res.status(400).json({ error: "taskId is required" });
+    const access = await requireTaskAccess(getUserId(req), taskId, true);
+    if (access.task.claimed) return res.json({ success: true, alreadySettled: true });
+    if (access.task.completed) return res.status(400).json({ error: "Proof was submitted for this task, so it cannot be forfeited." });
+    if (Math.floor(Date.now() / 1000) <= access.task.deadline.toNumber()) {
+      return res.status(400).json({ error: "The deadline has not passed yet." });
+    }
+    const { txHash } = await relayForfeitStake(Number(taskId));
+    res.json({ success: true, txHash });
+  } catch (err) {
+    console.error("Forfeit error:", err.message);
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to apply the penalty" });
   }
 });
 
