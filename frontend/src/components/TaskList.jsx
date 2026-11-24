@@ -63,6 +63,10 @@ export default function TaskList({
   const [assignments, setAssignments] = useState({});
   const [embeddedAddress, setEmbeddedAddress] = useState("");
   const [reviews, setReviews] = useState({});
+  // Optimistic state: once the backend accepts an action, show its result straight away
+  // instead of waiting for the chain refresh (which can take several seconds).
+  const [optimistic, setOptimistic] = useState({});
+  const markDone = (id, patch) => setOptimistic((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   const loadGenRef = useRef(0); // increments each loadTasks call; guards stale assignment updates
 
   useEffect(() => {
@@ -224,7 +228,8 @@ export default function TaskList({
         return;
       }
 
-      updateActionState(task.id, { loading: false, showUploader: false });
+      markDone(task.id, { completed: true, proofUrl: result.url });
+      updateActionState(task.id, { loading: false, showUploader: false, error: "" });
       loadTasks();
     } catch (err) {
       console.error(err);
@@ -297,7 +302,8 @@ export default function TaskList({
         taskId: task.id,
         taskName: task.name,
       });
-      updateActionState(task.id, { loading: false });
+      markDone(task.id, { completed: true, validated: true });
+      updateActionState(task.id, { loading: false, error: "" });
       loadTasks();
     } catch (err) {
       updateActionState(task.id, {
@@ -330,7 +336,8 @@ export default function TaskList({
       if (useEmbedded) {
         const token = await getToken();
         await claimFundsEmbedded(token, { taskId });
-        updateActionState(taskId, { loading: false });
+        markDone(taskId, { validated: true, claimed: true });
+        updateActionState(taskId, { loading: false, error: "" });
         // Wait a moment for backend to confirm, then refresh
         setTimeout(() => {
           loadTasks();
@@ -342,6 +349,7 @@ export default function TaskList({
       // MetaMask path — delay profile refresh so backend event listener has time to update completed_tasks
       const tx = await contract.claimFunds(taskId);
       await tx.wait();
+      markDone(taskId, { validated: true, claimed: true });
       updateActionState(taskId, { loading: false });
       loadTasks();
       setTimeout(() => onTaskClaimed?.(), 2500);
@@ -359,7 +367,8 @@ export default function TaskList({
       updateActionState(taskId, { loading: true, statusText: "Applying penalty...", error: "" });
       const token = await getToken();
       await forfeitTaskOffChain(token, { taskId });
-      updateActionState(taskId, { loading: false });
+      markDone(taskId, { claimed: true });
+      updateActionState(taskId, { loading: false, error: "" });
       setTimeout(loadTasks, 4000);
       loadTasks();
     } catch (err) {
@@ -443,7 +452,12 @@ export default function TaskList({
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredTasks.map((task) => {
+          {filteredTasks.map((rawTask) => {
+            const task = { ...rawTask, ...optimistic[rawTask.id] };
+            // Never let a stale optimistic flag hide a newer real value.
+            if (rawTask.completed) task.completed = true;
+            if (rawTask.validated) task.validated = true;
+            if (rawTask.claimed) task.claimed = true;
             const now = Date.now();
             const isExpired = now > task.deadline;
             const state = actionStates[task.id] || {};
@@ -892,6 +906,20 @@ export default function TaskList({
                             Acknowledge Penalty
                           </button>
                         )}
+
+                      {/* Clear feedback once an action has gone through */}
+                      {isOwner && task.completed && !task.validated && !task.claimed && !isRejected && !review?.canResubmit && (
+                        <p className="text-center text-xs font-label text-tertiary flex items-center justify-center gap-1.5 py-1">
+                          <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          Proof uploaded. Waiting for the validator.
+                        </p>
+                      )}
+                      {isAssignedValidator && task.validated && !task.claimed && (
+                        <p className="text-center text-xs font-label text-tertiary flex items-center justify-center gap-1.5 py-1">
+                          <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                          Validated. The owner can now claim the stake.
+                        </p>
+                      )}
 
                       {/* Settled */}
                       {task.claimed && (

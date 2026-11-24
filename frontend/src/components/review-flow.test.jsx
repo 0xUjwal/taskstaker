@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react';
 const m = vi.hoisted(() => ({
   getMyTasks: vi.fn(), getReview: vi.fn(), requestNewProof: vi.fn(), rejectTask: vi.fn(),
-  forfeit: vi.fn(), resubmit: vi.fn(), upload: vi.fn(),
+  forfeit: vi.fn(), resubmit: vi.fn(), upload: vi.fn(), submit: vi.fn(), validate: vi.fn(), claim: vi.fn(),
 }));
 vi.mock('../utils/web3', () => ({ contract: null }));
 vi.mock('../utils/storage', () => ({ uploadFile: m.upload }));
@@ -15,7 +15,7 @@ vi.mock('./ProofReport', () => ({ default: () => <div>report</div> }));
 vi.mock('../utils/api', () => ({
   getMyTasks: m.getMyTasks, getReview: m.getReview, requestNewProof: m.requestNewProof,
   rejectTask: m.rejectTask, forfeitTaskOffChain: m.forfeit, resubmitProof: m.resubmit,
-  submitProofOffChain: vi.fn(), validateTaskOffChain: vi.fn(), claimFundsEmbedded: vi.fn(),
+  submitProofOffChain: m.submit, validateTaskOffChain: m.validate, claimFundsEmbedded: m.claim,
   getEthPrice: async () => ({ usd: 3000 }), getEmbeddedWalletInfo: async () => ({ address: '0xabc' }),
 }));
 import TaskList from './TaskList';
@@ -83,5 +83,38 @@ describe('proof review flow', () => {
     m.getReview.mockRejectedValue(new Error('down'));
     render(<TaskList userProfile={{ id: 'u' }} walletReady={false} taskCreateTick={0} />);
     await screen.findByText('Validate Task');
+  });
+
+  it('after Submit Proof succeeds the button is replaced at once, even though the chain still says no proof', async () => {
+    m.upload.mockResolvedValue({ url: 'https://x/p1.png' }); m.submit.mockResolvedValue({ success: true });
+    await show({ ...base, isOwner: true, isValidator: false, completed: false, proofUrl: '' }, review(), 'Submit Proof');
+    fireEvent.click(screen.getByText('Submit Proof'));
+    const input = await screen.findByLabelText('Upload proof for task 7');
+    fireEvent.change(input, { target: { files: [new File(['x'], 'p.png', { type: 'image/png' })] } });
+    await screen.findByText('Proof uploaded. Waiting for the validator.');
+    expect(screen.queryByText('Submit Proof')).toBeNull();
+    expect(screen.getByText('Proof Submitted')).toBeTruthy();
+  });
+  it('after Validate succeeds the validator sees Validated at once, not the Validate button', async () => {
+    m.validate.mockResolvedValue({ success: true });
+    await show(base, review(), 'Validate Task');
+    fireEvent.click(screen.getByText('Validate Task'));
+    await screen.findByText('Validated. The owner can now claim the stake.');
+    expect(screen.queryByText('Validate Task')).toBeNull();
+  });
+  it('after Claim succeeds the owner sees Stake settled at once, not the Claim button', async () => {
+    m.claim.mockResolvedValue({ success: true });
+    await show({ ...base, isOwner: true, isValidator: false, validated: true }, review({ canResubmit: false }), 'Claim Stake');
+    fireEvent.click(screen.getByText('Claim Stake'));
+    await screen.findByText('Stake settled');
+    expect(screen.queryByText('Claim Stake')).toBeNull();
+    expect(screen.getByText('Completed')).toBeTruthy();
+  });
+  it('a failed action keeps the button and shows the error', async () => {
+    m.validate.mockRejectedValue(new Error('boom'));
+    await show(base, review(), 'Validate Task');
+    fireEvent.click(screen.getByText('Validate Task'));
+    await screen.findByText('boom');
+    expect(screen.getByText('Validate Task')).toBeTruthy();
   });
 });
