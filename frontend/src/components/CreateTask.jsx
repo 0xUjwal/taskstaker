@@ -8,6 +8,7 @@ import {
   assignValidator,
   createTaskEmbedded,
   getEmbeddedWalletInfo,
+  getMyTasks,
 } from "../utils/api";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -25,7 +26,10 @@ export default function CreateTask({
   const [stakeUsd, setStakeUsd] = useState("");
   const [stakeEth, setStakeEth] = useState("");
   const [ethPrice, setEthPrice] = useState(null);
-  const lastEdited = useRef(null); // "usd" | "eth": which box the user typed in last
+  const [inrRate, setInrRate] = useState(null);
+  const [recentValidators, setRecentValidators] = useState([]);
+  const [stakeInr, setStakeInr] = useState("");
+  const lastEdited = useRef(null); // "usd" | "eth" | "inr": which box the user typed in last
   const [relayerAddress, setRelayerAddress] = useState("");
   const [embeddedWallet, setEmbeddedWallet] = useState(null); // { address, balanceEth }
   const [walletMode, setWalletMode] = useState("embedded"); // "embedded" | "metamask"
@@ -53,6 +57,27 @@ export default function CreateTask({
     init();
   }, [getToken]);
 
+  // Dropdown of validators: only people THIS user already assigned on their own tasks.
+  // Built from the user's own task list, so it never exposes other users' names.
+  useEffect(() => {
+    let stopped = false;
+    (async () => {
+      try {
+        const token = await getToken();
+        const { tasks, assignments } = await getMyTasks(token);
+        const me = (userProfile?.username || "").toLowerCase();
+        const names = [];
+        (tasks || []).forEach((t) => {
+          if (!t.isOwner) return;
+          const v = assignments?.[t.id]?.validatorUsername;
+          if (v && !v.startsWith("0x") && v.toLowerCase() !== me && !names.includes(v.toLowerCase())) names.push(v.toLowerCase());
+        });
+        if (!stopped) setRecentValidators(names);
+      } catch {}
+    })();
+    return () => { stopped = true; };
+  }, [getToken, userProfile?.username]);
+
   // Keep the ETH price live: retry quickly until it loads, then refresh every 30 s.
   useEffect(() => {
     let timer;
@@ -69,44 +94,61 @@ export default function CreateTask({
     return () => { stopped = true; clearTimeout(timer); };
   }, []);
 
-  // When the price arrives or changes, recompute the box the user did NOT type in.
+  // USD -> INR rate (public FX feed, straight from the browser). Same retry pattern, refreshed every 5 min.
   useEffect(() => {
-    if (!ethPrice) return;
-    if (lastEdited.current === "usd" && parseFloat(stakeUsd) > 0) {
-      setStakeEth((parseFloat(stakeUsd) / ethPrice).toFixed(6));
-    } else if (lastEdited.current === "eth" && parseFloat(stakeEth) > 0) {
-      setStakeUsd((parseFloat(stakeEth) * ethPrice).toFixed(2));
+    let timer;
+    let stopped = false;
+    const tick = async () => {
+      let ok = false;
+      try {
+        const r = await fetch("https://open.er-api.com/v6/latest/USD");
+        const d = await r.json();
+        const rate = d?.rates?.INR;
+        if (typeof rate === "number" && rate > 0 && !stopped) { setInrRate(rate); ok = true; }
+      } catch {}
+      if (!stopped) timer = setTimeout(tick, ok ? 300000 : 5000);
+    };
+    tick();
+    return () => { stopped = true; clearTimeout(timer); };
+  }, []);
+
+  // Set the other two boxes from the one the user typed in.
+  function fillFrom(source, raw, price = ethPrice, rate = inrRate) {
+    const n = parseFloat(raw);
+    if (!(n > 0) || !price) {
+      if (source !== "usd") setStakeUsd("");
+      if (source !== "inr") setStakeInr("");
+      if (source !== "eth") setStakeEth("");
+      return;
     }
+    const usd = source === "usd" ? n : source === "eth" ? n * price : rate ? n / rate : null;
+    if (usd === null) return;
+    if (source !== "usd") setStakeUsd(usd.toFixed(2));
+    if (source !== "eth") setStakeEth((usd / price).toFixed(6));
+    if (source !== "inr") setStakeInr(rate ? (usd * rate).toFixed(2) : "");
+  }
+
+  // When a price or the FX rate arrives or changes, recompute the boxes the user did NOT type in.
+  useEffect(() => {
+    const src = lastEdited.current;
+    if (!src || !ethPrice) return;
+    const raw = src === "usd" ? stakeUsd : src === "eth" ? stakeEth : stakeInr;
+    if (parseFloat(raw) > 0) fillFrom(src, raw);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ethPrice]);
+  }, [ethPrice, inrRate]);
 
-  function handleUsdChange(val) {
-    lastEdited.current = "usd";
-    setStakeUsd(val);
-    if (ethPrice && val && !isNaN(parseFloat(val))) {
-      setStakeEth((parseFloat(val) / ethPrice).toFixed(6));
-    } else {
-      setStakeEth("");
-    }
-  }
+  function handleUsdChange(val) { lastEdited.current = "usd"; setStakeUsd(val); fillFrom("usd", val); }
+  function handleEthChange(val) { lastEdited.current = "eth"; setStakeEth(val); fillFrom("eth", val); }
+  function handleInrChange(val) { lastEdited.current = "inr"; setStakeInr(val); fillFrom("inr", val); }
 
-  function handleEthChange(val) {
-    lastEdited.current = "eth";
-    setStakeEth(val);
-    if (ethPrice && val && !isNaN(parseFloat(val))) {
-      setStakeUsd((parseFloat(val) * ethPrice).toFixed(2));
-    } else {
-      setStakeUsd("");
-    }
-  }
-
-  async function handleResolveValidator() {
-    if (!validatorInput.trim()) return;
+  async function handleResolveValidator(override) {
+    const typed = typeof override === "string" ? override : validatorInput;
+    if (!typed.trim()) return;
     setResolving(true);
     setValidatorError("");
     setValidatorResolved(null);
     try {
-      const data = await resolveUser(validatorInput.trim().replace(/^@/, ""));
+      const data = await resolveUser(typed.trim().replace(/^@/, ""));
       if (data.username.toLowerCase() === userProfile.username.toLowerCase() || (data.uniqueId != null && userProfile.unique_id != null && String(data.uniqueId) === String(userProfile.unique_id))) throw new Error("Choose someone else. You cannot validate your own task.");
       // Note: walletAddress may be null — validators don't need wallets
       setValidatorResolved(data);
@@ -271,6 +313,7 @@ export default function CreateTask({
     setName("");
     setHours("");
     setStakeUsd("");
+    setStakeInr("");
     setStakeEth("");
     setValidatorInput("");
     setValidatorResolved(null);
@@ -441,11 +484,11 @@ export default function CreateTask({
             </label>
             {ethPrice && (
               <span className="text-white/60 text-[10px] font-label">
-                1 ETH ≈ ${ethPrice.toLocaleString()}
+                1 ETH ≈ ${ethPrice.toLocaleString()}{inrRate ? ` · ₹${Math.round(ethPrice * inrRate).toLocaleString("en-IN")}` : ""}
               </span>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/70 text-sm font-bold">
                 $
@@ -458,6 +501,21 @@ export default function CreateTask({
                 min="0.01"
                 className="w-full glass-input pl-7 pr-3.5 py-3.5 font-body text-sm"
                 placeholder="10.00"
+              />
+            </div>
+            <div className="relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/70 text-sm font-bold">
+                ₹
+              </span>
+              <input
+                type="number"
+                value={stakeInr}
+                onChange={(e) => handleInrChange(e.target.value)}
+                step="0.01"
+                min="0.01"
+                disabled={!inrRate}
+                className="w-full glass-input pl-7 pr-3.5 py-3.5 font-body text-sm disabled:opacity-50"
+                placeholder="INR"
               />
             </div>
             <div className="relative">
@@ -584,6 +642,24 @@ export default function CreateTask({
             Choose someone you know and trust to review your proof honestly.
             You cannot validate your own task. They only need a TaskStaker account, not a wallet.
           </p>
+          {recentValidators.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) return;
+                setValidatorInput("@" + v);
+                handleResolveValidator(v);
+              }}
+              aria-label="Pick a validator you used before"
+              className="w-full glass-input p-3 font-body text-sm"
+            >
+              <option value="">Pick a validator you used before...</option>
+              {recentValidators.map((v) => (
+                <option key={v} value={v}>@{v}</option>
+              ))}
+            </select>
+          )}
           <div className="flex gap-2">
             <input
               type="text"
@@ -599,7 +675,7 @@ export default function CreateTask({
             />
             <button
               type="button"
-              onClick={handleResolveValidator}
+              onClick={() => handleResolveValidator()}
               disabled={resolving || !validatorInput.trim()}
               className="px-4 py-3 btn-ghost text-xs font-label font-bold rounded-lg uppercase tracking-wider"
             >
