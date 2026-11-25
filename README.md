@@ -314,6 +314,12 @@ npm run build
 
 ---
 
+## Made by
+
+Built by [Ujwal](https://github.com/0xUjwal).
+
+---
+
 ## License
 
 MIT
