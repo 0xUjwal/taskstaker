@@ -1,4 +1,5 @@
 import { SignInButton } from "@clerk/clerk-react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Landing() {
   return (
@@ -14,7 +15,8 @@ export default function Landing() {
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold tracking-tighter gradient-text-primary font-headline">TaskStaker</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <ThemeToggle />
           <SignInButton mode="modal">
             <button className="btn-primary px-6 py-2.5 rounded-xl font-headline font-bold text-sm">
               Get Started

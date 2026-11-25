@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import HamburgerMenu from "./HamburgerMenu";
 import NotificationBell from "./NotificationBell";
 import WalletPanel from "./WalletPanel";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Layout({
   userProfile,
@@ -65,6 +66,7 @@ export default function Layout({
           {/* Right section — notifications + address + username */}
           <div className="flex items-center gap-1 sm:gap-2 sm:pl-4 sm:border-l border-white/[0.08] h-11 shrink-0">
             <NotificationBell userId={userProfile?.id} />
+            <ThemeToggle />
 
             {/* Wallet button — directly after notifications */}
             <button

@@ -279,3 +279,27 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .material-symbols-outlined { display: inline-block; width: 1em; flex-shrink: 0; overflow: hidden; vertical-align: middle; }
+
+/* ── Light mode (opt-in via the header toggle; dark red/black is the default) ──
+   The whole page is colour-inverted, then images and media are flipped back so
+   photos, proofs and logos keep their real colours. */
+html.light-mode {
+  filter: invert(1) hue-rotate(180deg) saturate(1.5) contrast(1.12) brightness(0.96);
+  background: #ffffff;
+}
+html.light-mode img,
+html.light-mode video,
+html.light-mode canvas,
+html.light-mode iframe {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Light mode: keep the landing headline red-toned (the invert filter would otherwise shift the violet/sky stops to blue) */
+html.light-mode .gradient-text-aurora {
+  background-image: linear-gradient(120deg, #FF3B30 0%, #FF6B5E 55%, #FF8A7A 100%);
+}
+
+/* Light mode: the filter on <html> stops backdrop blur from working, so dropdowns and drawers need a solid background or the page shows through */
+html.light-mode .glass-strong {
+  background: #1b1b1d;
+}
